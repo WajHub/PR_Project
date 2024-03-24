@@ -1,14 +1,55 @@
 classDiagram
-    class Gracz{
-      - int id
-      + SzukajGry()
-      + WykonajRuch()
+    class Gra{
+        - List~Gracz~ gracze
+        - Serwer serwer
+        - Plansza plansza
     }
     class Serwer{
-      - List~Gracz~ gracze
-      + RozpocznijGre()
-      + PrzetwarzanieRuchu()
-      + AktualizujStanGry()
-      + ZakonczGre()
+        - Socket serverSocket
+        + RozpocznijGre()
+        + PrzetwarzanieRuchu()
+        + AktualizujStanGry()
+        + ZakonczGre()
     }
-    %% Serwer "1" --> "1..*" Gracz
+    class Gracz{
+        - int id
+        - StanGracza stanGracza
+        - Socket socket
+        + SzukajGry()
+        + WykonajRuch()
+    }
+    %% class GraczHandler{
+
+    %% }
+    class Plansza{
+        - List~Pole~
+        + ZmienStanPlanszy()
+    }
+ 
+
+    class Pole{
+        - int x 
+        - int y
+        - int zawartosc
+    }
+    note for Pole "0 - puste pole
+                    x - idGracza"
+    %% class Wiadomosc{
+
+    %% }
+    %% Serwer -- Wiadomosc
+    %% Wiadomosc -- Gracz
+    class StanGracza{
+        <<enumeration>>
+        W_KOLEJCE
+        AKTYWNY
+        KONIEC
+    }
+    Gra -- Serwer
+    Gra "1" -- "2..*"Gracz
+    Gra -- Plansza
+
+    Gracz -- StanGracza
+    %% Gracz -- Serwer
+    Plansza -- Pole
+     
