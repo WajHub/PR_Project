@@ -1,0 +1,14 @@
+classDiagram
+    class Gracz{
+      - int id
+      + SzukajGry()
+      + WykonajRuch()
+    }
+    class Serwer{
+      - List~Gracz~ gracze
+      + RozpocznijGre()
+      + PrzetwarzanieRuchu()
+      + AktualizujStanGry()
+      + ZakonczGre()
+    }
+    %% Serwer "1" --> "1..*" Gracz

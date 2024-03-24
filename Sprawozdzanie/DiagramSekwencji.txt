@@ -1,0 +1,30 @@
+sequenceDiagram
+    actor Gracz1
+    actor Gracz2
+    
+    %% Poczekalnia ------------------
+    activate Serwer
+    Gracz1->>Serwer: SzukajGry()
+    Gracz2->>Serwer: SzukajGry()
+    Serwer-->>Gracz2: RozpocznijGre()
+    Serwer-->>Gracz1: RozpocznijGre()
+    deactivate Serwer
+    %%  -----------------------------
+
+    activate Serwer
+    Gracz1->>+Serwer: WykonajRuch()
+    Serwer->>Serwer: PrzetwarzanieRuchu()
+    Serwer-->>Gracz2: AktualizujStanGry()
+    Serwer-->>-Gracz1: AktualizujStanGry()
+    Gracz2->>+Serwer: WykonajRuch()
+    Serwer->>Serwer: PrzetwarzanieRuchu()
+    Serwer-->>Gracz1: AktualizujStanGry()
+    Serwer-->>-Gracz2: AktualizujStanGry()
+    deactivate Serwer
+
+    activate Serwer
+    Serwer->>Gracz1: ZakonczGre()
+    Serwer->>Gracz2: ZakonczGre()
+    deactivate Serwer
+
+    
