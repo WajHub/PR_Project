@@ -6,10 +6,13 @@ classDiagram
     }
     class Serwer{
         - Socket serverSocket
+        - Gra gra
         + RozpocznijGre()
         + PrzetwarzanieRuchu()
         + AktualizujStanGry()
         + ZakonczGre()
+        + Wyslij(Wiadomosc wiadomosc)
+        + Odbierz(Wiadomosc wiadomosc)
     }
     class Gracz{
         - int id
@@ -17,6 +20,8 @@ classDiagram
         - Socket socket
         + SzukajGry()
         + WykonajRuch()
+        + Wyslij(Wiadomosc wiadomosc)
+        + Odbierz(Wiadomosc wiadomosc)
     }
     %% class GraczHandler{
 
@@ -32,11 +37,23 @@ classDiagram
         - int y
         - int zawartosc
     }
+
     note for Pole "0 - puste pole
                     x - idGracza"
-    %% class Wiadomosc{
 
-    %% }
+    class Wiadomosc{
+        - TypWiadomosci typWiadomosci
+        - String tresc
+    }
+
+    class TypWiadomosci{
+        <<enumeration>>
+        SZUKAJ_GRY
+        WYKONAJ_RUCH
+        ROZPOCZNIJ__GRE
+        AKTUALZIUJ_STAN_GRY
+    }
+    Wiadomosc -- TypWiadomosci
     %% Serwer -- Wiadomosc
     %% Wiadomosc -- Gracz
     class StanGracza{
