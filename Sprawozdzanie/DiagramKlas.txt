@@ -41,19 +41,6 @@ classDiagram
     note for Pole "0 - puste pole
                     x - idGracza"
 
-    class Wiadomosc{
-        - TypWiadomosci typWiadomosci
-        - String tresc
-    }
-
-    class TypWiadomosci{
-        <<enumeration>>
-        SZUKAJ_GRY
-        WYKONAJ_RUCH
-        ROZPOCZNIJ__GRE
-        AKTUALZIUJ_STAN_GRY
-    }
-    Wiadomosc -- TypWiadomosci
     %% Serwer -- Wiadomosc
     %% Wiadomosc -- Gracz
     class StanGracza{
