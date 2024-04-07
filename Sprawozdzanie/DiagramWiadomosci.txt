@@ -1,0 +1,27 @@
+classDiagram 
+    class Wiadomosc{
+        -nadawca: String
+        -odbiorca: String
+        -typ: typWiadomosci
+        -CzasWyslania: String
+        -tresc: TrescWiadomosci
+        + serialize(): String
+        + deserialize(String data): Message
+    }
+
+
+    class typWiadomosci {
+        <<enumeration>>
+        GAME
+        STRING
+    }
+
+
+    class TrescWiadomosci{
+        -text: String
+        + serialize(): String
+        + deserialize(String data): Message
+    }
+
+    Wiadomosc -- TrescWiadomosci
+    Wiadomosc -- typWiadomosci
