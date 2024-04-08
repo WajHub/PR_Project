@@ -129,7 +129,7 @@ Poniższe tabele prezentują dokladną strukturę każdego możliwego komunikatu
 
 #table(
   columns: (auto, auto, auto),
-  table.cell(colspan: 3, align(center)[*Wykonaj Ruch (Klient -> Serwer)*], align: center),
+  table.cell(colspan: 3, align(center)[*Zgloś gotowość (Klient -> Serwer)*], align: center),
   align(center)[*Nazwa pola*], align(center)[*Typ danych*], align(center)[*Opis*],
   [move], [string], [Wykonany ruch - "LEWO", "PRAWO", "GÓRA", DÓŁ]
 )
