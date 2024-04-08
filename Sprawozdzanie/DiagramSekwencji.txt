@@ -1,11 +1,14 @@
 sequenceDiagram
     actor Gracz1
     actor Gracz2
+ 
     
     %% Poczekalnia ------------------
     activate Serwer
     Gracz1->>Serwer: SzukajGry()
     Gracz2->>Serwer: SzukajGry()
+    Gracz1->>Serwer: Gotowy()
+    Gracz2->>Serwer: Gotowy()
     Serwer-->>Gracz2: RozpocznijGre()
     Serwer-->>Gracz1: RozpocznijGre()
     deactivate Serwer
