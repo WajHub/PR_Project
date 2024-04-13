@@ -25,6 +25,9 @@ replay_pid*
 
 
 # General
-.DS_Store
+*.DS_Store
 .AppleDouble
 .LSOverride
+
+# IntelliJ IDEA
+*.idea/
