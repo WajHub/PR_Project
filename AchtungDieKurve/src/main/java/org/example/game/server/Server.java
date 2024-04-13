@@ -1,7 +1,7 @@
 package org.example.game.server;
 
 import org.example.game.Game;
-import org.example.game.player.PlayerHandler;
+import org.example.game.ConnectionHandler;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,17 +26,16 @@ public class Server {
     }
 
     public static void main(String[] args) throws IOException {
-        Server server = new Server(new Game(new ArrayList<>()));
-        System.out.println("Server started");
+        Game game = new Game(new ArrayList<>());
+        Server server = new Server(game);
         while(true){
             Socket playerSocket = server.serverSocket.accept();
             ObjectOutputStream out = new ObjectOutputStream(playerSocket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(playerSocket.getInputStream());
 
-            PlayerHandler clientHandler = new PlayerHandler(playerSocket, in, out);
-            Thread playerHandler = new Thread(clientHandler);
-            playerHandler.start();
-//            game.getPlayers().s
+            ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out);
+            Thread playerThread = new Thread(connectionHandler);
+            playerThread.start();
         }
     }
 

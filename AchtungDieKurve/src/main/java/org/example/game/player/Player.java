@@ -31,22 +31,23 @@ public class Player {
         this.name = name;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         Player player = new Player(new GameFrame(), 1, "test");
+        player.out.writeObject("Hello from player (" + player + ")");
 
-        // Player close window
         player.gameFrame.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosed(WindowEvent e) {
+            public void windowClosing(WindowEvent e) {
                 System.out.println("Window closed");
                 player.close();
             }
         });
 
+        var mess = player.in.readObject();
+        System.out.println(mess);
 
 
     }
-
     public void showMessage(String content){
         showMessageDialog(gameFrame, content);
     }
