@@ -1,7 +1,13 @@
 package org.example.game.player;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.example.game.Game;
 import org.example.game.server.Server;
 import org.example.gui.GameFrame;
+import org.example.gui.WindowToChoseNick;
+
+import javax.swing.*;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -10,31 +16,33 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
+import java.util.List;
 
-public class Player {
-    private Socket socket;
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
+@Getter
+@Setter
+public class Player implements Serializable {
+    private transient Socket socket;
+    private transient ObjectInputStream in;
+    private transient ObjectOutputStream out;
     private GameFrame gameFrame;
     String name;
     int id;
+    private boolean isAlive = false;
+    private boolean connected = false;
 
-    public Player(GameFrame gameFrame, int id, String name) throws IOException {
+    public Player(GameFrame gameFrame) throws IOException {
         socket = new Socket ("127.0.0.1", Server.PORT);
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
-
+        connected = true;
         this.gameFrame = gameFrame;
-        // id i name bedzie ustawiane po polaczeniu (id udzieli serwer, a name wybierze gracz)
-        this.id = id;
-        this.name = name;
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-        Player player = new Player(new GameFrame(), 1, "test");
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+        Player player = new Player(new GameFrame());
         player.out.writeObject("Hello from player (" + player + ")");
-
         player.gameFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -46,14 +54,24 @@ public class Player {
         var mess = player.in.readObject();
         System.out.println(mess);
 
+        player.out.writeObject(player);
+
+        while(player.connected){
+            Thread.sleep(2000);
+            player.out.writeObject("test wyslania");
+            System.out.println(player);
+        }
 
     }
-    public void showMessage(String content){
-        showMessageDialog(gameFrame, content);
+
+    public void choseNick() {
+        new WindowToChoseNick(this);
     }
 
     private void close () {
         try {
+            connected = false;
+            out.writeObject("exit");
             in.close();
             out.close();
             socket.close();
@@ -69,4 +87,5 @@ public class Player {
                 ", id=" + id +
                 '}';
     }
+
 }

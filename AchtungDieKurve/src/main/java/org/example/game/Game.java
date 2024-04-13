@@ -1,9 +1,11 @@
 package org.example.game;
 
+import lombok.Getter;
 import org.example.game.player.Player;
 
 import java.util.List;
 
+@Getter
 public class Game {
 
     List<Player> players;
@@ -22,7 +24,9 @@ public class Game {
         return result.toString();
     }
 
-    public List<Player> getPlayers() {
-        return players;
+
+    public int getPlayersCount() {
+        return players.size();
     }
+
 }

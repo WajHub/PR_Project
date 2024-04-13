@@ -2,6 +2,7 @@ package org.example.game.server;
 
 import org.example.game.Game;
 import org.example.game.ConnectionHandler;
+import org.example.game.player.Player;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -25,7 +26,7 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         Game game = new Game(new ArrayList<>());
         Server server = new Server(game);
         while(true){
@@ -33,14 +34,11 @@ public class Server {
             ObjectOutputStream out = new ObjectOutputStream(playerSocket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(playerSocket.getInputStream());
 
-            ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out);
+            ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out, game);
             Thread playerThread = new Thread(connectionHandler);
             playerThread.start();
-        }
-    }
 
-    public String sendMessageAboutConnectedPlayer(){
-        return game.infoAboutPlayers();
+        }
     }
 
 }
