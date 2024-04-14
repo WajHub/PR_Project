@@ -5,6 +5,7 @@ import org.example.game.player.Player;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class WindowToChoseNick extends JFrame {
     private JTextField textField;
@@ -25,6 +26,15 @@ public class WindowToChoseNick extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String playerName = textField.getText();
                 player.setName(playerName);
+                String typMess = "newNick";
+                try {
+                    player.getOut().writeObject(typMess);
+                    player.getOut().writeObject(playerName);
+                    player.getOut().writeObject(player);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+
                 dispose();
             }
         });

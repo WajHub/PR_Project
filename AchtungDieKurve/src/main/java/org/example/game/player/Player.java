@@ -7,6 +7,8 @@ import org.example.game.server.Server;
 import org.example.gui.GameFrame;
 import org.example.gui.WindowToChoseNick;
 
+
+
 import javax.swing.*;
 
 import static javax.swing.JOptionPane.showMessageDialog;
@@ -51,12 +53,27 @@ public class Player implements Serializable {
             }
         });
 
-        var mess = player.in.readObject();
-        System.out.println(mess);
+        var helloMess = player.in.readObject();
+        System.out.println(helloMess);
 
+        player.choseNick();
+
+        String typMess = "newPlayer";
+        player.out.writeObject(typMess);
         player.out.writeObject(player);
 
         while(player.connected){
+            // Read message
+            var message = player.in.readObject();
+            if(message.equals("newId")){
+                var newPlayer = player.in.readObject();
+                if (newPlayer instanceof Player playerChanged){
+                    player.setName(playerChanged.getName());
+                    player.setId(playerChanged.getId());
+                }
+            }
+
+            // Write message
             Thread.sleep(2000);
             player.out.writeObject("test wyslania");
             System.out.println(player);
@@ -64,7 +81,7 @@ public class Player implements Serializable {
 
     }
 
-    public void choseNick() {
+    public void choseNick() throws IOException {
         new WindowToChoseNick(this);
     }
 

@@ -24,9 +24,15 @@ public class Game {
         return result.toString();
     }
 
+    public Player getPlayer(int id){
+        return players.get(id-1);
+    }
 
     public int getPlayersCount() {
         return players.size();
     }
 
+    public void removePlayer(int id) {
+        players.remove(id);
+    }
 }

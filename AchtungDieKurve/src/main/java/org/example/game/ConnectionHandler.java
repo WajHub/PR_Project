@@ -29,15 +29,29 @@ public class ConnectionHandler implements Runnable{
             System.out.println(helloMessage);
             out.writeObject("Hello from server");
             while(true){
+                // Read message
                 var message = in.readObject();
                 if(message.equals("exit")){
                     break;
                 }
-                else if (message instanceof Player player){
+                else if(message.equals("newPlayer")){
+                    var player = (Player) in.readObject();
                     game.addPlayer(player);
                     player.setId(game.getPlayersCount());
-                    player.choseNick();
+                    String typeMess = "newId";
+                    out.writeObject(typeMess);
+                    out.writeObject(player);
                 }
+                else if(message.equals("newNick")){
+                    var name = in.readObject();
+                    var player = (Player) in.readObject();
+                    game.getPlayer(player.getId()).setName((String)name);
+                }
+
+                // Write message
+                Thread.sleep(2000);
+                out.writeObject("test wyslania");
+
                 System.out.println(game.infoAboutPlayers());
             }
         } catch (SocketException se) {
