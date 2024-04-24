@@ -21,20 +21,12 @@ public class WindowToChoseNick extends JFrame {
         panel.add(textField);
         JButton button = new JButton("OK");
         this.player = player;
+
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String playerName = textField.getText();
                 player.setName(playerName);
-                String typMess = "newNick";
-                try {
-                    player.getOut().writeObject(typMess);
-                    player.getOut().writeObject(playerName);
-                    player.getOut().writeObject(player);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-
                 dispose();
             }
         });

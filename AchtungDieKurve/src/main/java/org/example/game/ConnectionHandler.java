@@ -1,12 +1,15 @@
 package org.example.game;
 
-import com.sun.jdi.event.ThreadDeathEvent;
+import com.google.gson.Gson;
 import org.example.game.player.Player;
-
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+
+
 
 public class ConnectionHandler implements Runnable{
     private Socket socket;
@@ -24,42 +27,42 @@ public class ConnectionHandler implements Runnable{
     @Override
     public void run() {
         try{
-            System.out.println("Client connected: "+socket.getInetAddress());
-            var helloMessage = (String) in.readObject();
-            System.out.println(helloMessage);
-            out.writeObject("Hello from server");
+            JSONObject messageToClient = new JSONObject();
+            JSONParser parser = new JSONParser();
+            Gson gson = new Gson();
+
             while(true){
                 // Read message
-                var message = in.readObject();
-                if(message.equals("exit")){
+                String messageFromClient = (String) in.readObject();
+                JSONObject jsonMessageFromClient = (JSONObject) parser.parse(messageFromClient);
+
+                if(jsonMessageFromClient.get("type").equals("exit")){
                     break;
                 }
-                else if(message.equals("newPlayer")){
-                    var player = (Player) in.readObject();
+                else if(jsonMessageFromClient.get("type").equals("newPlayer")){
+                    messageToClient.put("type", "newId");
+                    JSONObject playerJsonFromClient = (JSONObject) parser.parse((String) jsonMessageFromClient.get("content"));
+                    Player player = new Player((String) playerJsonFromClient.get("name"),
+                                                game.getPlayersCount(),
+                                                (Boolean) playerJsonFromClient.get("isAlive"),
+                                                (Boolean) playerJsonFromClient.get("connected"));
                     game.addPlayer(player);
-                    player.setId(game.getPlayersCount());
-                    String typeMess = "newId";
-                    out.writeObject(typeMess);
-                    out.writeObject(player);
-                }
-                else if(message.equals("newNick")){
-                    var name = in.readObject();
-                    var player = (Player) in.readObject();
-                    game.getPlayer(player.getId()).setName((String)name);
+                    String playerInJsonToClient = gson.toJson(player);
+                    messageToClient.put("content", playerInJsonToClient);
+                    out.writeObject(messageToClient.toString());
+                    messageToClient.keySet().clear();
                 }
 
                 // Write message
                 Thread.sleep(2000);
-                out.writeObject("test wyslania");
-
                 System.out.println(game.infoAboutPlayers());
             }
         } catch (SocketException se) {
             close();
         } catch (Exception e){
-            e.printStackTrace();
+//            close();
         } finally {
-            close();
+            if(socket.isConnected()) close();
         }
     }
 
