@@ -37,6 +37,7 @@ public class Player implements Serializable {
     private int id;
     private boolean isAlive = false;
     private boolean connected = false;
+    // TODO gracz powininen przechowywac jeszcze chyba ilosc punktow
 
     public Player(GameFrame gameFrame) throws IOException {
         socket = new Socket ("127.0.0.1", Server.PORT);
