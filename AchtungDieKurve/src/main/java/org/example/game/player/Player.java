@@ -8,6 +8,7 @@ import org.example.game.Game;
 import org.example.game.server.Server;
 import org.example.gui.GameFrame;
 import org.example.gui.WindowToChoseNick;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -44,6 +45,7 @@ public class Player implements Serializable {
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
         connected = true;
+        id = -1;
         this.gameFrame = gameFrame;
     }
 
@@ -67,12 +69,11 @@ public class Player implements Serializable {
 
         player.choseNick();
 
-        // Nie wiem jak inaczej zrobic, żeby program czekał, dopóki gracz nie wybierze nicku (to raczej jest do poprawy)
         while(player.getName()==null){
             Thread.sleep(1000);
         }
 
-        player.join();
+        player.joinMessage();
         player.action();
 
     }
@@ -87,12 +88,20 @@ public class Player implements Serializable {
                 this.setId(((Long) playerJsonFromServer.get("id")).intValue());
                 System.out.println(this);
             }
+            else if(jsonMessageFromServer.get("type").equals("connectedPlayers")){
+                JSONArray connectedPlayers = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
+                System.out.println(connectedPlayers);
+//                this.gameFrame.displayConnectedPlayers(connectedPlayers);
+                if (this.getId()==0 && this.getName()!=null){
+                    System.out.println("Ty jestes szefem");
+                }
+            }
             // Write message
             Thread.sleep(2000);
         }
     }
 
-    public void join() throws IOException {
+    public void joinMessage() throws IOException {
         this.messageToServerJson.put("type", "newPlayer");
         this.messageToServerJson.put("content", this.gson.toJson(this)); // Send player as json
         this.out.writeObject(this.messageToServerJson.toString());

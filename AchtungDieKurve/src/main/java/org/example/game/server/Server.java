@@ -17,27 +17,39 @@ public class Server {
 
     private Game game;
 
-    public Server(Game game) {
+    private ArrayList<ConnectionHandler> clients;
+
+    public Server() {
         try {
+            game = new Game(new ArrayList<>());
             serverSocket = new ServerSocket(PORT);
-            this.game = game;
+            clients = new ArrayList<>();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        Game game = new Game(new ArrayList<>());
-        Server server = new Server(game);
+        Server server = new Server();
         while(true){
             Socket playerSocket = server.serverSocket.accept();
             ObjectOutputStream out = new ObjectOutputStream(playerSocket.getOutputStream());
             ObjectInputStream in = new ObjectInputStream(playerSocket.getInputStream());
 
-            ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out, game);
+            ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out, server.game);
             Thread playerThread = new Thread(connectionHandler);
+            server.clients.add(connectionHandler);
             playerThread.start();
 
+            // Send Message
+            server.sendConnectedPlayers(server.game);
+
+        }
+    }
+
+    private void sendConnectedPlayers(Game game) throws IOException {
+        for (ConnectionHandler client : clients) {
+            client.sendConnectedPlayers(game.getPlayers());
         }
     }
 

@@ -19,7 +19,7 @@ public class WindowToChoseNick extends JFrame {
         panel.add(label);
         textField = new JTextField(20);
         panel.add(textField);
-        JButton button = new JButton("OK");
+        JButton button = new JButton("READY");
         this.player = player;
 
         button.addActionListener(new ActionListener() {

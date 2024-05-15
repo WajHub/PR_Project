@@ -3,8 +3,10 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GameFrame extends JFrame {
+    private GamePanel gamePanel;
     public GameFrame(){
-        this.add(new GamePanel());
+        gamePanel = new GamePanel();
+        this.add(gamePanel);
         this.setTitle("Achtung Die Kurve");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
@@ -14,5 +16,7 @@ public class GameFrame extends JFrame {
     }
 
 
-
+    public void displayConnectedPlayers() {
+//        this.gamePanel.displayConnectedPlayers();
+    }
 }
