@@ -58,7 +58,6 @@ public class Player implements Serializable {
 
     public static void main(String[] args) throws IOException, InterruptedException, ParseException, ClassNotFoundException {
         Player player = new Player(new GameFrame());
-
         player.gameFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -66,6 +65,7 @@ public class Player implements Serializable {
                 player.close();
             }
         });
+
 
         player.choseNick();
 
@@ -83,19 +83,27 @@ public class Player implements Serializable {
             // Read message
             String messageFromServer = (String) this.in.readObject();
             JSONObject jsonMessageFromServer = (JSONObject) this.parser.parse(messageFromServer);
-            if(jsonMessageFromServer.get("type").equals("newId")){
-                JSONObject playerJsonFromServer = (JSONObject) this.parser.parse((String) jsonMessageFromServer.get("content"));
-                this.setId(((Long) playerJsonFromServer.get("id")).intValue());
-                System.out.println(this);
+            String messageType = (String) jsonMessageFromServer.get("type");
+
+            switch (messageType) {
+                case "newId":
+                    JSONObject playerJsonFromServer = (JSONObject) this.parser.parse((String) jsonMessageFromServer.get("content"));
+                    this.setId(((Long) playerJsonFromServer.get("id")).intValue());
+                    System.out.println(this);
+                    break;
+                case "connectedPlayers":
+                    JSONArray connectedPlayers = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
+                    gameFrame.displayConnectedPlayers(connectedPlayers.toString());
+                    if (this.getId()==0 && this.getName()!=null){
+                        System.out.println("Ty jestes szefem");
+                    }
+                    break;
+
+                default:
+
+                    break;
             }
-            else if(jsonMessageFromServer.get("type").equals("connectedPlayers")){
-                JSONArray connectedPlayers = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
-                System.out.println(connectedPlayers);
-//                this.gameFrame.displayConnectedPlayers(connectedPlayers);
-                if (this.getId()==0 && this.getName()!=null){
-                    System.out.println("Ty jestes szefem");
-                }
-            }
+
             // Write message
             Thread.sleep(2000);
         }

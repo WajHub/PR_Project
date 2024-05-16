@@ -1,6 +1,5 @@
 package org.example.gui;
 import javax.swing.*;
-import java.awt.*;
 
 public class GameFrame extends JFrame {
     private GamePanel gamePanel;
@@ -16,7 +15,7 @@ public class GameFrame extends JFrame {
     }
 
 
-    public void displayConnectedPlayers() {
-//        this.gamePanel.displayConnectedPlayers();
+    public void displayConnectedPlayers(String players) {
+        this.gamePanel.displayConnectedPlayers(players);
     }
 }

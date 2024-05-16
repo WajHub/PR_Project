@@ -2,6 +2,7 @@ package org.example.game;
 
 import com.google.gson.Gson;
 import org.example.game.player.Player;
+import org.example.game.server.Server;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -12,69 +13,76 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.List;
 
-// Game trzeba stad usunac. Zarzadzanie Gra powinno byc w klasie Server (ale nie wiem jak to zrobic, bo server jest blokowany
-// przez metode accept
-public class ConnectionHandler implements Runnable{
+public class ConnectionHandler implements Runnable {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private Game game;
-
     private transient JSONParser parser = new JSONParser();
     private transient Gson gson = new Gson();
     private transient JSONObject messageToPlayersJson = new JSONObject();
+    private boolean isRunning = true;
 
-    public ConnectionHandler(Socket socket, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, Game game){
+    public ConnectionHandler(Socket socket, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream){
         this.socket = socket;
         this.in = objectInputStream;
         this.out = objectOutputStream;
-        this.game = game;
     }
 
     @Override
     public void run() {
         try{
 
-            while(true){
+            while(isRunning){
                 // Read message
                 String messageFromClient = (String) in.readObject();
                 JSONObject jsonMessageFromClient = (JSONObject) parser.parse(messageFromClient);
+                String messageType = (String) jsonMessageFromClient.get("type");
 
-                if(jsonMessageFromClient.get("type").equals("exit")){
-                    break;
+                switch (messageType) {
+                    case "exit":
+                        isRunning = false;
+                        break;
+                    case "newPlayer":
+                        messageToPlayersJson.put("type", "newId");
+                        JSONObject playerJsonFromClient = (JSONObject) parser.parse((String) jsonMessageFromClient.get("content"));
+                        addNewPlayer(playerJsonFromClient);
+                        sendConnectedPlayers();
+                        break;
+                    default:
+                        // Handle unexpected messageType
+                        break;
                 }
-                else if(jsonMessageFromClient.get("type").equals("newPlayer")){
-                    messageToPlayersJson.put("type", "newId");
-                    JSONObject playerJsonFromClient = (JSONObject) parser.parse((String) jsonMessageFromClient.get("content"));
-                    Player player = new Player((String) playerJsonFromClient.get("name"),
-                                                game.getPlayersCount(),
-                                                (Boolean) playerJsonFromClient.get("isAlive"),
-                                                (Boolean) playerJsonFromClient.get("connected"));
-                    game.addPlayer(player);
-                    String playerInJsonToClient = gson.toJson(player);
-                    messageToPlayersJson.put("content", playerInJsonToClient);
-                    out.writeObject(messageToPlayersJson.toString());
-                    messageToPlayersJson.keySet().clear();
-                }
-
-                // Write message
                 Thread.sleep(2000);
-
-                System.out.println(game.infoAboutPlayers());
+                System.out.println(Server.game.infoAboutPlayers());
             }
         } catch (SocketException se) {
             close();
-        } catch (Exception e){
+        } catch (Exception ignored){
         } finally {
             if(socket.isConnected()) close();
         }
     }
 
-    public void sendConnectedPlayers(List<Player> players) throws IOException {
-        this.messageToPlayersJson.put("type", "connectedPlayers");
-        this.messageToPlayersJson.put("content", this.gson.toJson(players)); // Send player as json
-        this.out.writeObject(this.messageToPlayersJson.toString());
-        this.messageToPlayersJson.keySet().clear();
+    private synchronized void addNewPlayer(JSONObject playerJsonFromClient) throws IOException {
+        Player player = new Player((String) playerJsonFromClient.get("name"),
+                Server.game.getPlayersCount(),
+                (Boolean) playerJsonFromClient.get("isAlive"),
+                (Boolean) playerJsonFromClient.get("connected"));
+        Server.game.addPlayer(player);
+        String playerInJsonToClient = gson.toJson(player);
+        messageToPlayersJson.put("content", playerInJsonToClient);
+        out.writeObject(messageToPlayersJson.toString());
+        messageToPlayersJson.keySet().clear();
+    }
+
+    private void sendConnectedPlayers() throws IOException {
+        for(ConnectionHandler  client: Server.clients){
+            messageToPlayersJson.put("type", "connectedPlayers");
+            messageToPlayersJson.put("content", gson.toJson(Server.game.getPlayers()));
+            client.out.writeObject(messageToPlayersJson.toString());
+            messageToPlayersJson.keySet().clear();
+        }
+
     }
 
     public void close() {
