@@ -18,7 +18,7 @@ public class Server {
     public static final int PORT = 1234;
     private ServerSocket serverSocket;
     public static Game game;
-    public static ArrayList<ConnectionHandler> clients;  // zamienic na threadpool
+    public static ArrayList<ConnectionHandler> clients;  // TODO: zamienic na threadpool
 
     public Server() {
         try {

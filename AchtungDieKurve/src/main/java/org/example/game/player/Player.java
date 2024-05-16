@@ -3,8 +3,6 @@ package org.example.game.player;
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
-import netscape.javascript.JSObject;
-import org.example.game.Game;
 import org.example.game.server.Server;
 import org.example.gui.GameFrame;
 import org.example.gui.WindowToChoseNick;
@@ -92,8 +90,11 @@ public class Player implements Serializable {
                     System.out.println(this);
                     break;
                 case "connectedPlayers":
+                    // TODO: Poprawic sposob wyswietlania graczy (np. Nick: [ilosc punktow])
                     JSONArray connectedPlayers = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
-                    gameFrame.displayConnectedPlayers(connectedPlayers.toString());
+                    String connectedPlayersStr = connectedPlayers.toString();
+                    connectedPlayersStr = connectedPlayersStr.replace("}", "]\n");
+                    gameFrame.displayConnectedPlayers(connectedPlayersStr);
                     if (this.getId()==0 && this.getName()!=null){
                         System.out.println("Ty jestes szefem");
                     }
