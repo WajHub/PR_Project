@@ -95,8 +95,10 @@ public class Player implements Serializable {
                     String connectedPlayersStr = connectedPlayers.toString();
                     connectedPlayersStr = connectedPlayersStr.replace("}", "]\n");
                     gameFrame.displayConnectedPlayers(connectedPlayersStr);
-                    if (this.getId()==0 && this.getName()!=null){
-                        System.out.println("Ty jestes szefem");
+                    if(this.getId() == 0
+                            && this.getName() != null){
+                                // TODO: dodac mozliwosc rozpoczecia gry
+                                gameFrame.displayButtonToStartGame();
                     }
                     break;
 

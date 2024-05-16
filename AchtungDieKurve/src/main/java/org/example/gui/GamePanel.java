@@ -31,4 +31,8 @@ public class GamePanel extends JPanel implements ActionListener {
     public void displayConnectedPlayers(String players) {
         menuPanel.displayConnectedPlayers(players);
     }
+
+    public void displayButtonToStartGame() {
+        menuPanel.displayButtonToStartGame();
+    }
 }

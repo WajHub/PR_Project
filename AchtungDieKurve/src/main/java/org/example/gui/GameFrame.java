@@ -18,4 +18,8 @@ public class GameFrame extends JFrame {
     public void displayConnectedPlayers(String players) {
         this.gamePanel.displayConnectedPlayers(players);
     }
+
+    public void displayButtonToStartGame() {
+        gamePanel.displayButtonToStartGame();
+    }
 }
