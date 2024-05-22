@@ -12,6 +12,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -27,36 +28,39 @@ public class Player implements Serializable {
     private transient Socket socket;
     private transient ObjectInputStream in;
     private transient ObjectOutputStream out;
-    private transient GameFrame gameFrame;
     private transient JSONParser parser = new JSONParser();
     private transient Gson gson = new Gson();
     private transient JSONObject messageToServerJson = new JSONObject();
+    private transient Color color;
 
     private String name;
     private int id;
     private boolean isAlive = false;
+    private boolean isReady = false;
     private boolean connected = false;
+
     // TODO gracz powininen przechowywac jeszcze chyba ilosc punktow
 
-    public Player(GameFrame gameFrame) throws IOException {
+    public Player() throws IOException {
         socket = new Socket ("127.0.0.1", Server.PORT);
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
         connected = true;
         id = -1;
-        this.gameFrame = gameFrame;
     }
 
-    public Player(String name, int id, boolean isAlive, boolean connected) {
+    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady) {
         this.name = name;
         this.id = id;
         this.isAlive = isAlive;
         this.connected = connected;
+        this.isReady = isReady;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ParseException, ClassNotFoundException {
-        Player player = new Player(new GameFrame());
-        player.gameFrame.addWindowListener(new WindowAdapter() {
+        Player player = new Player();
+        GameFrame gameFrame = new GameFrame(player);
+        gameFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 System.out.println("Window closed");
@@ -71,12 +75,12 @@ public class Player implements Serializable {
             Thread.sleep(1000);
         }
 
-        player.joinMessage();
-        player.action();
+        player.sendPlayer("newPlayer");
+        player.action(gameFrame);
 
     }
 
-    public void action() throws InterruptedException, IOException, ClassNotFoundException, ParseException {
+    public void action(GameFrame gameFrame) throws InterruptedException, IOException, ClassNotFoundException, ParseException {
         while(this.connected){
             // Read message
             String messageFromServer = (String) this.in.readObject();
@@ -87,6 +91,7 @@ public class Player implements Serializable {
                 case "newId":
                     JSONObject playerJsonFromServer = (JSONObject) this.parser.parse((String) jsonMessageFromServer.get("content"));
                     this.setId(((Long) playerJsonFromServer.get("id")).intValue());
+                    gameFrame.displayButtonReady();
                     System.out.println(this);
                     break;
                 case "connectedPlayers":
@@ -95,15 +100,8 @@ public class Player implements Serializable {
                     String connectedPlayersStr = connectedPlayers.toString();
                     connectedPlayersStr = connectedPlayersStr.replace("}", "]\n");
                     gameFrame.displayConnectedPlayers(connectedPlayersStr);
-                    if(this.getId() == 0
-                            && this.getName() != null){
-                                // TODO: dodac mozliwosc rozpoczecia gry
-                                gameFrame.displayButtonToStartGame();
-                    }
                     break;
-
                 default:
-
                     break;
             }
 
@@ -112,17 +110,36 @@ public class Player implements Serializable {
         }
     }
 
-    public void joinMessage() throws IOException {
-        this.messageToServerJson.put("type", "newPlayer");
+    // Messages ------------------------------------------
+    public void sendPlayer(String type) throws IOException {
+        this.messageToServerJson.put("type", type);
         this.messageToServerJson.put("content", this.gson.toJson(this)); // Send player as json
         this.out.writeObject(this.messageToServerJson.toString());
         this.messageToServerJson.keySet().clear();
+    }
+    // ---------------------------------------------------
+
+    public static Player getPlayerFromJSON(JSONObject json){
+        return  new Player((String) json.get("name"),
+                ((Long) json.get("id")).intValue(),
+                (Boolean) json.get("isAlive"),
+                (Boolean) json.get("connected"),
+                (Boolean) json.get("isReady"));
     }
 
     // TODO Gracz musi wybrac niezajęty i niepusty nick
     public void choseNick() throws IOException {
         new WindowToChoseNick(this);
     }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "name='" + name + '\'' +
+                ", id=" + id +
+                '}';
+    }
+
 
     private void close () {
         try {
@@ -136,12 +153,5 @@ public class Player implements Serializable {
         }
     }
 
-    @Override
-    public String toString() {
-        return "Player{" +
-                "name='" + name + '\'' +
-                ", id=" + id +
-                '}';
-    }
 
 }

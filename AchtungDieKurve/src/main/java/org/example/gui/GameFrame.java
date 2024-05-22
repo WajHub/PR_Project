@@ -1,10 +1,14 @@
 package org.example.gui;
+import org.example.game.player.Player;
+
 import javax.swing.*;
 
 public class GameFrame extends JFrame {
     private GamePanel gamePanel;
-    public GameFrame(){
-        gamePanel = new GamePanel();
+    private Player player;
+    public GameFrame(Player player){
+        gamePanel = new GamePanel(player);
+        this.player = player;
         this.add(gamePanel);
         this.setTitle("Achtung Die Kurve");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -19,7 +23,7 @@ public class GameFrame extends JFrame {
         this.gamePanel.displayConnectedPlayers(players);
     }
 
-    public void displayButtonToStartGame() {
-        gamePanel.displayButtonToStartGame();
+    public void displayButtonReady() {
+        gamePanel.displayButtonReady();
     }
 }

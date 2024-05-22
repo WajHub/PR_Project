@@ -33,15 +33,17 @@ public class Server {
     public static void main(String[] args) throws IOException {
         Server server = new Server();
         while(true){
-            Socket playerSocket = server.serverSocket.accept();
-            ObjectOutputStream out = new ObjectOutputStream(playerSocket.getOutputStream());
-            ObjectInputStream in = new ObjectInputStream(playerSocket.getInputStream());
+            // Wait for connect players
+            while(!game.isStared()){
+                Socket playerSocket = server.serverSocket.accept();
+                ObjectOutputStream out = new ObjectOutputStream(playerSocket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(playerSocket.getInputStream());
 
-            ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out);
-            Thread playerThread = new Thread(connectionHandler);
-            server.clients.add(connectionHandler);
-            playerThread.start();
-
+                ConnectionHandler connectionHandler = new ConnectionHandler(playerSocket, in, out);
+                Thread playerThread = new Thread(connectionHandler);
+                server.clients.add(connectionHandler);
+                playerThread.start();
+            }
         }
     }
 

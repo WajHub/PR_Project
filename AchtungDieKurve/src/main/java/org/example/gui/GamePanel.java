@@ -1,6 +1,6 @@
 package org.example.gui;
 
-import lombok.Getter;
+import org.example.game.player.Player;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,7 +10,9 @@ import java.awt.event.ActionListener;
 
 public class GamePanel extends JPanel implements ActionListener {
     private MenuPanel menuPanel;
-    GamePanel(){
+    private Player player;
+    GamePanel(Player player){
+        this.player = player;
         this.setFocusable(true);
         this.setBackground(Color.white);
         int screen_width = BoardPanel.BOARD_WIDTH;
@@ -18,7 +20,7 @@ public class GamePanel extends JPanel implements ActionListener {
         this.setPreferredSize(new Dimension(screen_width, screen_height));
         this.addKeyListener(new MyKeyAdapter());
         this.setLayout(new FlowLayout());
-        menuPanel = new MenuPanel();
+        menuPanel = new MenuPanel(player);
         this.add(menuPanel);
         this.add(new BoardPanel());
         this.setBorder(new EmptyBorder(0, 0,0,0));
@@ -32,7 +34,7 @@ public class GamePanel extends JPanel implements ActionListener {
         menuPanel.displayConnectedPlayers(players);
     }
 
-    public void displayButtonToStartGame() {
-        menuPanel.displayButtonToStartGame();
+    public void displayButtonReady() {
+        menuPanel.displayButtonReady();
     }
 }

@@ -43,9 +43,24 @@ public class ConnectionHandler implements Runnable {
                         isRunning = false;
                         break;
                     case "newPlayer":
-                        messageToPlayersJson.put("type", "newId");
                         JSONObject playerJsonFromClient = (JSONObject) parser.parse((String) jsonMessageFromClient.get("content"));
-                        addNewPlayer(playerJsonFromClient);
+                        Player player = Player.getPlayerFromJSON(playerJsonFromClient);
+                        player.setId(Server.game.getPlayers().size());
+                        messageToPlayersJson.put("type", "newId");
+                        addNewPlayer(player);
+                        sendConnectedPlayers();
+                        break;
+                    case "ready":
+                        Player player2 = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
+                        System.out.println("Playerid: "+player2.getId()+ " is ready");
+                        for (var pl: Server.game.getPlayers()){
+                            if (player2.getId()==pl.getId()){
+                                pl.setReady(true);
+                            }
+                        }
+                        Server.game.getPlayers().forEach(p ->{
+                            if (p.getId()==player2.getId()) p.setReady(true);
+                        });
                         sendConnectedPlayers();
                         break;
                     default:
@@ -63,11 +78,7 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    private synchronized void addNewPlayer(JSONObject playerJsonFromClient) throws IOException {
-        Player player = new Player((String) playerJsonFromClient.get("name"),
-                Server.game.getPlayersCount(),
-                (Boolean) playerJsonFromClient.get("isAlive"),
-                (Boolean) playerJsonFromClient.get("connected"));
+    private void addNewPlayer(Player player ) throws IOException {
         Server.game.addPlayer(player);
         String playerInJsonToClient = gson.toJson(player);
         messageToPlayersJson.put("content", playerInJsonToClient);

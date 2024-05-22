@@ -1,9 +1,12 @@
 package org.example.gui;
 
+import org.example.game.player.Player;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class MenuPanel extends JPanel implements ActionListener {
     static final int MENU_HEIGHT = 140;
@@ -12,8 +15,10 @@ public class MenuPanel extends JPanel implements ActionListener {
 
     private JLabel playersConnected;
     private JTextArea textArea;
-    JButton buttonToStart = new JButton("Start Game");
-    MenuPanel(){
+    private Player player;
+    JButton buttonReady = new JButton("Ready");
+    MenuPanel(Player player){
+        this.player = player;
         this.setFocusable(true);
         this.setBackground(Color.white);
         this.setPreferredSize(new Dimension(MENU_WIDTH, MENU_HEIGHT));
@@ -26,8 +31,18 @@ public class MenuPanel extends JPanel implements ActionListener {
         JScrollPane scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         this.add(playersConnected);
         this.add(scrollPane);
-        buttonToStart.setVisible(false);
-        this.add(buttonToStart);
+
+        buttonReady.setVisible(false);
+        buttonReady.addActionListener(e -> {
+            player.setReady(true);
+            try {
+                player.sendPlayer("ready");
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            buttonReady.setVisible(false);
+        });
+        this.add(buttonReady);
 
     }
     @Override
@@ -39,7 +54,7 @@ public class MenuPanel extends JPanel implements ActionListener {
         textArea.setText(players);
     }
 
-    public void displayButtonToStartGame() {
-        buttonToStart.setVisible(true);
+    public void displayButtonReady() {
+        buttonReady.setVisible(true);
     }
 }

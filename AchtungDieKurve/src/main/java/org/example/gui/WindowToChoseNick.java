@@ -19,16 +19,13 @@ public class WindowToChoseNick extends JFrame {
         panel.add(label);
         textField = new JTextField(20);
         panel.add(textField);
-        JButton button = new JButton("READY");
+        JButton button = new JButton("Join");
         this.player = player;
 
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String playerName = textField.getText();
-                player.setName(playerName);
-                dispose();
-            }
+        button.addActionListener(e -> {
+            String playerName = textField.getText();
+            player.setName(playerName);
+            dispose();
         });
         panel.add(button);
         panel.setSize(300, 100);
