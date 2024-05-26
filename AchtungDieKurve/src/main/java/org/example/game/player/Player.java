@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.game.server.Server;
 import org.example.gui.GameFrame;
-import org.example.gui.WindowToChoseNick;
+import org.example.gui.WindowToChooseNick;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -13,6 +13,7 @@ import org.json.simple.parser.ParseException;
 
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -32,12 +33,19 @@ public class Player implements Serializable {
     private transient Gson gson = new Gson();
     private transient JSONObject messageToServerJson = new JSONObject();
     private transient Color color;
+    private transient Direction direction = Direction.UP;
+    private transient int up;
+    private transient int down;
+    private transient int left;
+    private transient int right;
+
 
     private String name;
     private int id;
     private boolean isAlive = false;
     private boolean isReady = false;
     private boolean connected = false;
+    private Position position = new Position();
 
     // TODO gracz powininen przechowywac jeszcze chyba ilosc punktow
 
@@ -49,12 +57,13 @@ public class Player implements Serializable {
         id = -1;
     }
 
-    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady) {
+    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady, Position position) {
         this.name = name;
         this.id = id;
         this.isAlive = isAlive;
         this.connected = connected;
         this.isReady = isReady;
+        this.position = position;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ParseException, ClassNotFoundException {
@@ -92,7 +101,6 @@ public class Player implements Serializable {
                     JSONObject playerJsonFromServer = (JSONObject) this.parser.parse((String) jsonMessageFromServer.get("content"));
                     this.setId(((Long) playerJsonFromServer.get("id")).intValue());
                     gameFrame.displayButtonReady();
-                    System.out.println(this);
                     break;
                 case "connectedPlayers":
                     // TODO: Poprawic sposob wyswietlania graczy (np. Nick: [ilosc punktow])
@@ -101,6 +109,10 @@ public class Player implements Serializable {
                     connectedPlayersStr = connectedPlayersStr.replace("}", "]\n");
                     gameFrame.displayConnectedPlayers(connectedPlayersStr);
                     break;
+                case "newPositions":
+                    JSONArray newPositions = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
+                    drawPlayers(newPositions, gameFrame);
+                    break;
                 default:
                     break;
             }
@@ -108,6 +120,14 @@ public class Player implements Serializable {
             // Write message
             Thread.sleep(2000);
         }
+    }
+
+    private void drawPlayers(JSONArray newPositions, GameFrame gameFrame) {
+        newPositions.forEach(player -> {
+            JSONObject playerJson = (JSONObject) player;
+            Player playerFromJson = Player.getPlayerFromJSON(playerJson);
+            gameFrame.drawPlayer(playerFromJson);
+        });
     }
 
     // Messages ------------------------------------------
@@ -124,12 +144,13 @@ public class Player implements Serializable {
                 ((Long) json.get("id")).intValue(),
                 (Boolean) json.get("isAlive"),
                 (Boolean) json.get("connected"),
-                (Boolean) json.get("isReady"));
+                (Boolean) json.get("isReady"),
+                Position.getPositionFromJSON((JSONObject) json.get("position")));
     }
 
     // TODO Gracz musi wybrac niezajęty i niepusty nick
     public void choseNick() throws IOException {
-        new WindowToChoseNick(this);
+        new WindowToChooseNick(this);
     }
 
     @Override
@@ -154,4 +175,36 @@ public class Player implements Serializable {
     }
 
 
+    public void setController(String selectedItem) {
+        switch (selectedItem){
+            case "W-A-S-D":
+                up = KeyEvent.VK_W;
+                down = KeyEvent.VK_S;
+                left = KeyEvent.VK_A;
+                right = KeyEvent.VK_D;
+                break;
+            case "I-J-K-L":
+
+                break;
+            case "1-2-3-4":
+
+                break;
+            default:
+                // Default control -> arrays
+                up = KeyEvent.VK_UP;
+                down = KeyEvent.VK_DOWN;
+                left = KeyEvent.VK_LEFT;
+                right = KeyEvent.VK_RIGHT;
+
+                break;
+        }
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
 }

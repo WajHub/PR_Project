@@ -2,6 +2,7 @@ package org.example.game;
 
 import lombok.Getter;
 import org.example.game.player.Player;
+import org.example.gui.BoardPanel;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 public class Game {
 
     List<Player> players;
+    int[][] board = new int [BoardPanel.HEIGHT/BoardPanel.PLAYER_SIZE][BoardPanel.WIDTH/BoardPanel.PLAYER_SIZE];
     boolean isStared = false;
 
     public Game(List<Player> players) {
@@ -38,5 +40,9 @@ public class Game {
 
     public synchronized void addPlayer(Player player) {
         players.add(player);
+    }
+
+    public void setStared(boolean b) {
+        isStared = b;
     }
 }

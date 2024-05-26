@@ -3,16 +3,13 @@ package org.example.gui;
 import org.example.game.player.Player;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
 
-public class WindowToChoseNick extends JFrame {
+public class WindowToChooseNick extends JFrame {
     private JTextField textField;
+    private JComboBox<String> comboBox;
     Player player;
 
-    public WindowToChoseNick(Player player) {
-
+    public WindowToChooseNick(Player player) {
         super("Chose nick");
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Input your nick:");
@@ -22,9 +19,17 @@ public class WindowToChoseNick extends JFrame {
         JButton button = new JButton("Join");
         this.player = player;
 
+        // Define the options
+        JLabel labelOptions = new JLabel("Choose control options:");
+        panel.add(labelOptions);
+        String[] options = {"Arrays", "W-A-S-D", "I-J-K-L","1-2-3-4"};
+        comboBox = new JComboBox<>(options);
+        panel.add(comboBox);
+
         button.addActionListener(e -> {
             String playerName = textField.getText();
             player.setName(playerName);
+            player.setController((String) comboBox.getSelectedItem());
             dispose();
         });
         panel.add(button);

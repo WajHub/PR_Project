@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 
 public class GamePanel extends JPanel implements ActionListener {
     private MenuPanel menuPanel;
+    private BoardPanel boardPanel;
     private Player player;
     GamePanel(Player player){
         this.player = player;
@@ -22,7 +23,8 @@ public class GamePanel extends JPanel implements ActionListener {
         this.setLayout(new FlowLayout());
         menuPanel = new MenuPanel(player);
         this.add(menuPanel);
-        this.add(new BoardPanel());
+        boardPanel = new BoardPanel();
+        this.add(boardPanel);
         this.setBorder(new EmptyBorder(0, 0,0,0));
     }
     @Override
@@ -36,5 +38,10 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void displayButtonReady() {
         menuPanel.displayButtonReady();
+    }
+
+    public void drawPlayer(Player player) {
+        boardPanel.drawPlayer(player);
+
     }
 }

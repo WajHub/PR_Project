@@ -26,4 +26,8 @@ public class GameFrame extends JFrame {
     public void displayButtonReady() {
         gamePanel.displayButtonReady();
     }
+
+    public void drawPlayer(Player player) {
+        gamePanel.drawPlayer(player);
+    }
 }

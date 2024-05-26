@@ -1,7 +1,9 @@
 package org.example.game;
 
 import com.google.gson.Gson;
+import org.example.game.player.Direction;
 import org.example.game.player.Player;
+import org.example.game.player.Position;
 import org.example.game.server.Server;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -48,19 +50,15 @@ public class ConnectionHandler implements Runnable {
                         player.setId(Server.game.getPlayers().size());
                         messageToPlayersJson.put("type", "newId");
                         addNewPlayer(player);
-                        sendConnectedPlayers();
+                        sendPlayers("connectedPlayers");
                         break;
                     case "ready":
                         Player player2 = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
                         System.out.println("Playerid: "+player2.getId()+ " is ready");
-                        for (var pl: Server.game.getPlayers()){
-                            if (player2.getId()==pl.getId()){
-                                pl.setReady(true);
-                            }
-                        }
                         Server.game.getPlayers().forEach(p ->{
                             if (p.getId()==player2.getId()) p.setReady(true);
                         });
+                        startRound();
                         sendConnectedPlayers();
                         break;
                     default:
@@ -78,12 +76,61 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
+    private void startRound() throws IOException, InterruptedException {
+        if(everyPlayerIsReady()){
+            Server.game.setStared(true);
+            Server.game.getPlayers().forEach(p -> p.setPosition(Position.randomPosition()));
+            while(Server.game.isStared){
+                sendPlayers("newPositions");
+                Thread.sleep(1000);
+                movePlayers();
+            }
+        }
+
+    }
+
+    private void movePlayers() {
+        Server.game.getPlayers().forEach(
+                player -> {
+                    Position position = player.getPosition();
+                    switch (player.getDirection()){
+                        case Direction.UP:
+                            position.setY(position.getY()-1);
+                            break;
+                        case Direction.DOWN:
+                            position.setY(position.getY()+1);
+                            break;
+                        case Direction.LEFT:
+                            position.setX(position.getX()-1);
+                            break;
+                        case Direction.RIGHT:
+                            position.setX(position.getX()+1);
+                            break;
+                    }
+                }
+        );
+    }
+
+
+    private boolean everyPlayerIsReady() {
+        return Server.game.getPlayers().stream().allMatch(Player::isReady);
+    }
+
     private void addNewPlayer(Player player ) throws IOException {
         Server.game.addPlayer(player);
         String playerInJsonToClient = gson.toJson(player);
         messageToPlayersJson.put("content", playerInJsonToClient);
         out.writeObject(messageToPlayersJson.toString());
         messageToPlayersJson.keySet().clear();
+    }
+
+    private void sendPlayers(String type) throws IOException {
+        for(ConnectionHandler  client: Server.clients){
+            messageToPlayersJson.put("type", type);
+            messageToPlayersJson.put("content", gson.toJson(Server.game.getPlayers()));
+            client.out.writeObject(messageToPlayersJson.toString());
+            messageToPlayersJson.keySet().clear();
+        }
     }
 
     private void sendConnectedPlayers() throws IOException {
@@ -93,8 +140,8 @@ public class ConnectionHandler implements Runnable {
             client.out.writeObject(messageToPlayersJson.toString());
             messageToPlayersJson.keySet().clear();
         }
-
     }
+
 
     public void close() {
         System.out.println("Client disconnected: "+socket.getInetAddress());
