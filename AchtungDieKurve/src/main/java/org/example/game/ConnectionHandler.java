@@ -7,13 +7,15 @@ import org.example.game.player.Position;
 import org.example.game.server.Server;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.List;
 
 public class ConnectionHandler implements Runnable {
     private Socket socket;
@@ -54,19 +56,31 @@ public class ConnectionHandler implements Runnable {
                         break;
                     case "ready":
                         Player player2 = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
-                        System.out.println("Playerid: "+player2.getId()+ " is ready");
                         Server.game.getPlayers().forEach(p ->{
                             if (p.getId()==player2.getId()) p.setReady(true);
                         });
-                        startRound();
                         sendConnectedPlayers();
+                        startRound();
+                        break;
+                    case "getDirection":
+                        Player player3 = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
+                        Server.game.getPlayers().forEach(p ->{
+                            if (p.getId()==player3.getId()) p.setDirection(player3.getDirection());
+                        });
+                        break;
+                    case "pong":
+                        System.out.println("Pong from: "+socket.getInetAddress() + messageFromClient);
                         break;
                     default:
                         // Handle unexpected messageType
                         break;
                 }
-                Thread.sleep(2000);
-                System.out.println(Server.game.infoAboutPlayers());
+                if(Server.game.isStared()){
+                    Thread.sleep(1000);
+                    getDirectionsPlayers();
+                    movePlayers();
+                    sendPlayers("newPositions");
+                }
             }
         } catch (SocketException se) {
             close();
@@ -76,18 +90,17 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
+
+
     private void startRound() throws IOException, InterruptedException {
-        if(everyPlayerIsReady()){
+        if(everyPlayerIsReady() && Server.game.getPlayersCount() > 1){
             Server.game.setStared(true);
             Server.game.getPlayers().forEach(p -> p.setPosition(Position.randomPosition()));
-            while(Server.game.isStared){
-                sendPlayers("newPositions");
-                Thread.sleep(1000);
-                movePlayers();
-            }
+            sendPlayers("newPositions");
+            Thread.sleep(3000);
         }
-
     }
+
 
     private void movePlayers() {
         Server.game.getPlayers().forEach(
@@ -111,7 +124,6 @@ public class ConnectionHandler implements Runnable {
         );
     }
 
-
     private boolean everyPlayerIsReady() {
         return Server.game.getPlayers().stream().allMatch(Player::isReady);
     }
@@ -133,6 +145,25 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
+    private void getDirectionsPlayers() throws IOException, InterruptedException {
+        for(ConnectionHandler  client: Server.clients){
+            messageToPlayersJson.put("type", "getDirection");
+            client.out.writeObject(messageToPlayersJson.toString());
+            Thread.sleep(10);
+            messageToPlayersJson.keySet().clear();
+        }
+    }
+
+    private void sendPing() throws IOException, InterruptedException {
+        for(ConnectionHandler  client: Server.clients){
+            messageToPlayersJson.put("type", "ping");
+            messageToPlayersJson.put("content", "ping");
+            client.out.writeObject(messageToPlayersJson.toString());
+            Thread.sleep(10);
+            messageToPlayersJson.keySet().clear();
+        }
+    }
+
     private void sendConnectedPlayers() throws IOException {
         for(ConnectionHandler  client: Server.clients){
             messageToPlayersJson.put("type", "connectedPlayers");
@@ -141,7 +172,6 @@ public class ConnectionHandler implements Runnable {
             messageToPlayersJson.keySet().clear();
         }
     }
-
 
     public void close() {
         System.out.println("Client disconnected: "+socket.getInetAddress());
@@ -153,6 +183,5 @@ public class ConnectionHandler implements Runnable {
             e.printStackTrace();
         }
     }
-
 
 }

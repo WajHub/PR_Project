@@ -4,8 +4,7 @@ import lombok.Getter;
 import org.example.game.player.Player;
 import org.example.gui.BoardPanel;
 
-import java.awt.*;
-import java.util.ArrayList;
+import org.example.game.player.Direction;
 import java.util.List;
 
 @Getter
@@ -44,5 +43,13 @@ public class Game {
 
     public void setStared(boolean b) {
         isStared = b;
+    }
+
+    public void newDirectionPlayer(int id, Direction direction){
+        players.get(id).setDirection(direction);
+    }
+
+    public void setDirection(int id, Direction direction) {
+        players.get(id).setDirection(direction);
     }
 }

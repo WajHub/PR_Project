@@ -8,7 +8,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class BoardPanel extends JPanel implements ActionListener {
+public class BoardPanel extends JPanel  {
     public static final int BOARD_WIDTH = 600;
     public static final int BOARD_HEIGHT = 600;
 
@@ -20,13 +20,9 @@ public class BoardPanel extends JPanel implements ActionListener {
         this.setFocusable(true);
         this.setBackground(Color.black);
         this.setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
-        this.addKeyListener(new MyKeyAdapter());
         this.setLayout(new FlowLayout());
     }
-    @Override
-    public void actionPerformed(ActionEvent e) {
 
-    }
 
     public void drawPlayer(Player player) {
         Graphics g = this.getGraphics();

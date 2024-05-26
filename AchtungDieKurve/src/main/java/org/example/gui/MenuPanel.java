@@ -22,7 +22,6 @@ public class MenuPanel extends JPanel implements ActionListener {
         this.setFocusable(true);
         this.setBackground(Color.white);
         this.setPreferredSize(new Dimension(MENU_WIDTH, MENU_HEIGHT));
-        this.addKeyListener(new MyKeyAdapter());
         playersConnected = new JLabel("Players Connected:");
         textArea = new JTextArea();
         textArea.setRows(4);  // Set the number of rows to 5

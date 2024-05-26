@@ -33,7 +33,6 @@ public class Player implements Serializable {
     private transient Gson gson = new Gson();
     private transient JSONObject messageToServerJson = new JSONObject();
     private transient Color color;
-    private transient Direction direction = Direction.UP;
     private transient int up;
     private transient int down;
     private transient int left;
@@ -46,6 +45,7 @@ public class Player implements Serializable {
     private boolean isReady = false;
     private boolean connected = false;
     private Position position = new Position();
+    private Direction direction = Direction.DOWN;
 
     // TODO gracz powininen przechowywac jeszcze chyba ilosc punktow
 
@@ -66,6 +66,16 @@ public class Player implements Serializable {
         this.position = position;
     }
 
+    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady, Position position, Direction direction) {
+        this.name = name;
+        this.id = id;
+        this.isAlive = isAlive;
+        this.connected = connected;
+        this.isReady = isReady;
+        this.position = position;
+        this.direction = direction;
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException, ParseException, ClassNotFoundException {
         Player player = new Player();
         GameFrame gameFrame = new GameFrame(player);
@@ -81,15 +91,17 @@ public class Player implements Serializable {
         player.choseNick();
 
         while(player.getName()==null){
-            Thread.sleep(1000);
+            Thread.sleep(10);
         }
 
         player.sendPlayer("newPlayer");
+
         player.action(gameFrame);
+
 
     }
 
-    public void action(GameFrame gameFrame) throws InterruptedException, IOException, ClassNotFoundException, ParseException {
+    public void action(GameFrame gameFrame) throws IOException, ClassNotFoundException, ParseException {
         while(this.connected){
             // Read message
             String messageFromServer = (String) this.in.readObject();
@@ -113,12 +125,22 @@ public class Player implements Serializable {
                     JSONArray newPositions = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
                     drawPlayers(newPositions, gameFrame);
                     break;
+                case "getDirection":
+                    this.messageToServerJson.put("type", "getDirection");
+                    this.messageToServerJson.put("content", this.gson.toJson(this)); // Send player as json
+                    this.out.writeObject(this.messageToServerJson.toString());
+                    this.messageToServerJson.keySet().clear();
+                    break;
+                case "ping":
+                    this.messageToServerJson.put("type", "pong");
+                    this.messageToServerJson.put("content", this.gson.toJson(this));
+                    this.out.writeObject(this.messageToServerJson.toString());
+                    this.messageToServerJson.keySet().clear();
+                    System.out.println("Ping" + messageFromServer + this);
+                    break;
                 default:
                     break;
             }
-
-            // Write message
-            Thread.sleep(2000);
         }
     }
 
@@ -130,14 +152,12 @@ public class Player implements Serializable {
         });
     }
 
-    // Messages ------------------------------------------
     public void sendPlayer(String type) throws IOException {
         this.messageToServerJson.put("type", type);
         this.messageToServerJson.put("content", this.gson.toJson(this)); // Send player as json
         this.out.writeObject(this.messageToServerJson.toString());
         this.messageToServerJson.keySet().clear();
     }
-    // ---------------------------------------------------
 
     public static Player getPlayerFromJSON(JSONObject json){
         return  new Player((String) json.get("name"),
@@ -145,7 +165,8 @@ public class Player implements Serializable {
                 (Boolean) json.get("isAlive"),
                 (Boolean) json.get("connected"),
                 (Boolean) json.get("isReady"),
-                Position.getPositionFromJSON((JSONObject) json.get("position")));
+                Position.getPositionFromJSON((JSONObject) json.get("position")),
+                Direction.valueOf((String) json.get("direction")));
     }
 
     // TODO Gracz musi wybrac niezajęty i niepusty nick
@@ -184,10 +205,16 @@ public class Player implements Serializable {
                 right = KeyEvent.VK_D;
                 break;
             case "I-J-K-L":
-
+                up = KeyEvent.VK_I;
+                down = KeyEvent.VK_K;
+                left = KeyEvent.VK_J;
+                right = KeyEvent.VK_L;
                 break;
             case "1-2-3-4":
-
+                up = KeyEvent.VK_1;
+                down = KeyEvent.VK_2;
+                left = KeyEvent.VK_3;
+                right = KeyEvent.VK_4;
                 break;
             default:
                 // Default control -> arrays
@@ -195,7 +222,6 @@ public class Player implements Serializable {
                 down = KeyEvent.VK_DOWN;
                 left = KeyEvent.VK_LEFT;
                 right = KeyEvent.VK_RIGHT;
-
                 break;
         }
     }

@@ -19,7 +19,7 @@ public class GamePanel extends JPanel implements ActionListener {
         int screen_width = BoardPanel.BOARD_WIDTH;
         int screen_height = BoardPanel.BOARD_HEIGHT+MenuPanel.MENU_HEIGHT;
         this.setPreferredSize(new Dimension(screen_width, screen_height));
-        this.addKeyListener(new MyKeyAdapter());
+        this.addKeyListener(new MyKeyAdapter(player));
         this.setLayout(new FlowLayout());
         menuPanel = new MenuPanel(player);
         this.add(menuPanel);
