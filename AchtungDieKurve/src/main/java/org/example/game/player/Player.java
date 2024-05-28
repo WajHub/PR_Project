@@ -131,8 +131,14 @@ public class Player implements Serializable {
                     this.messageToServerJson.keySet().clear();
                     System.out.println("Ping id:" + this.getId()+" direction: " + this.getDirection());
                     break;
-                case "alivePlayers":
-
+                case "deadPlayer":
+                    JSONObject deadPlayer = (JSONObject) this.parser.parse((String) jsonMessageFromServer.get("content"));
+                    Player deadPlayerFromJson = Player.getPlayerFromJSON(deadPlayer);
+                    if(deadPlayerFromJson.getId() == this.getId()){
+                        this.setAlive(false);
+                        // TODO: Display game over
+//                        gameFrame.displayGameOver();
+                    }
                     break;
                 default:
                     break;
@@ -155,7 +161,6 @@ public class Player implements Serializable {
         this.out.writeObject(this.messageToServerJson.toString());
         this.messageToServerJson.keySet().clear();
     }
-
 
     public static Player getPlayerFromJSON(JSONObject json){
         return  new Player((String) json.get("name"),

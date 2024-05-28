@@ -61,9 +61,23 @@ public class Server {
                 sendPlayers("newPositions");
                 sendPlayers("getDirectionFromPlayer");
                 movePlayers();
-                sendPlayers("alivePlayers");
+                sendDeadPlayers();
                 sendPlayers("connectedPlayers");
                 Thread.sleep(TIME_FOR_MOVE);
+                game.getPlayers().forEach(player -> System.out.println(player.getId()+": "+player.isAlive()));
+            }
+        }
+    }
+
+    private static void sendDeadPlayers() throws IOException {
+        for(Player player: Server.game.getPlayers()){
+            if(!player.isAlive()){
+                for(ConnectionHandler  client: clients){
+                    messageToPlayersJson.put("type", "deadPlayer");
+                    messageToPlayersJson.put("content", gson.toJson(player));
+                    client.out.writeObject(messageToPlayersJson.toString());
+                    messageToPlayersJson.keySet().clear();
+                }
             }
         }
     }

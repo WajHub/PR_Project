@@ -64,7 +64,6 @@ public class Game {
             int y = player.getPosition().getY();
             if(validatePosition(x, y)==0) board[x][y] = player.getId();
             else player.setAlive(false);
-
         });
     }
 

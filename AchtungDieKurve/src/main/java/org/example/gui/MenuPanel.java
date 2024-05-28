@@ -14,6 +14,7 @@ public class MenuPanel extends JPanel implements ActionListener {
     static final int MENU_WIDTH = BoardPanel.BOARD_WIDTH;
 
     private JLabel playersConnected;
+    private JLabel playerColor = new JLabel("Player color");
     private JTextArea textArea;
     private Player player;
     JButton buttonReady = new JButton("Ready");
@@ -30,6 +31,9 @@ public class MenuPanel extends JPanel implements ActionListener {
         JScrollPane scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         this.add(playersConnected);
         this.add(scrollPane);
+        this.add(playerColor);
+
+        playerColor.setVisible(false);
 
         buttonReady.setVisible(false);
         buttonReady.addActionListener(e -> {
@@ -40,6 +44,8 @@ public class MenuPanel extends JPanel implements ActionListener {
                 throw new RuntimeException(ex);
             }
             buttonReady.setVisible(false);
+            playerColor.setForeground(BoardPanel.COLORS[player.getId()]);
+            playerColor.setVisible(true);
         });
         this.add(buttonReady);
 
