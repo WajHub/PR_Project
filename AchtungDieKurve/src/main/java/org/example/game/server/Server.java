@@ -17,6 +17,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @Getter
 @Setter
@@ -61,10 +62,10 @@ public class Server {
                 sendPlayers("newPositions");
                 sendPlayers("getDirectionFromPlayer");
                 movePlayers();
+                game.savePositions();
                 sendDeadPlayers();
                 sendPlayers("connectedPlayers");
                 Thread.sleep(TIME_FOR_MOVE);
-                game.getPlayers().forEach(player -> System.out.println(player.getId()+": "+player.isAlive()));
             }
         }
     }
