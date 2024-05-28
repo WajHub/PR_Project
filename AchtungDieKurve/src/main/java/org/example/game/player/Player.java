@@ -41,11 +41,12 @@ public class Player implements Serializable {
 
     private String name;
     private int id;
-    private boolean isAlive = false;
+    private boolean isAlive = true;
     private boolean isReady = false;
     private boolean connected = false;
     private Position position = new Position();
     private Direction direction = Direction.DOWN;
+    private Direction prevDirection = Direction.DOWN;
 
     // TODO gracz powininen przechowywac jeszcze chyba ilosc punktow
 
@@ -57,14 +58,6 @@ public class Player implements Serializable {
         id = -1;
     }
 
-    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady, Position position) {
-        this.name = name;
-        this.id = id;
-        this.isAlive = isAlive;
-        this.connected = connected;
-        this.isReady = isReady;
-        this.position = position;
-    }
 
     public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady, Position position, Direction direction) {
         this.name = name;
@@ -101,7 +94,7 @@ public class Player implements Serializable {
 
     }
 
-    public void action(GameFrame gameFrame) throws IOException, ClassNotFoundException, ParseException {
+    public void action(GameFrame gameFrame) throws IOException, ClassNotFoundException, ParseException, InterruptedException {
         while(this.connected){
             // Read message
             String messageFromServer = (String) this.in.readObject();
@@ -125,7 +118,7 @@ public class Player implements Serializable {
                     JSONArray newPositions = (JSONArray) this.parser.parse((String) jsonMessageFromServer.get("content"));
                     drawPlayers(newPositions, gameFrame);
                     break;
-                case "getDirection":
+                case "getDirectionFromPlayer":
                     this.messageToServerJson.put("type", "getDirection");
                     this.messageToServerJson.put("content", this.gson.toJson(this)); // Send player as json
                     this.out.writeObject(this.messageToServerJson.toString());
@@ -136,11 +129,15 @@ public class Player implements Serializable {
                     this.messageToServerJson.put("content", this.gson.toJson(this));
                     this.out.writeObject(this.messageToServerJson.toString());
                     this.messageToServerJson.keySet().clear();
-                    System.out.println("Ping" + messageFromServer + this);
+                    System.out.println("Ping id:" + this.getId()+" direction: " + this.getDirection());
+                    break;
+                case "alivePlayers":
+
                     break;
                 default:
                     break;
             }
+
         }
     }
 
@@ -158,6 +155,7 @@ public class Player implements Serializable {
         this.out.writeObject(this.messageToServerJson.toString());
         this.messageToServerJson.keySet().clear();
     }
+
 
     public static Player getPlayerFromJSON(JSONObject json){
         return  new Player((String) json.get("name"),
