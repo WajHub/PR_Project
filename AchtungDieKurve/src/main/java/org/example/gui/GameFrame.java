@@ -30,4 +30,8 @@ public class GameFrame extends JFrame {
     public void drawPlayer(Player player) {
         gamePanel.drawPlayer(player);
     }
+
+    public void clearBoard() {
+        gamePanel.clearBoard();
+    }
 }

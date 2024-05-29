@@ -64,9 +64,23 @@ public class Server {
                 movePlayers();
                 game.savePositions();
                 sendDeadPlayers();
+                checkEndOfRound();
                 sendPlayers("connectedPlayers");
                 Thread.sleep(TIME_FOR_MOVE);
             }
+        }
+    }
+
+    private static void checkEndOfRound() throws IOException {
+        if(game.getPlayers().stream().filter(Player::isAlive).count() <= 1){
+            game.getPlayers().stream().filter(Player::isAlive).forEach(player -> player.setPoints(player.getPoints()+1));
+            game.setStared(false);
+            game.getPlayers().forEach(player -> {
+                player.setAlive(true);
+                player.setReady(false);
+            });
+            sendPlayers("endOfRound");
+            game.clearBoard();
         }
     }
 
@@ -83,11 +97,14 @@ public class Server {
         }
     }
 
-    public static synchronized void startRound() {
+    public static synchronized void startRound() throws IOException, InterruptedException {
         if(everyPlayerIsReady() && Server.game.getPlayersCount() > 1){
             Server.game.setStared(true);
+            sendPlayers("startRound");
             Server.game.getPlayers().forEach(p -> p.setPosition(Position.randomPosition()));
             Server.game.savePositions();
+            sendPlayers("newPositions");
+            Thread.sleep(2000);
         }
     }
 

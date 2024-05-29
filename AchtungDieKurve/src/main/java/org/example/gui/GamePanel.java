@@ -42,6 +42,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void drawPlayer(Player player) {
         boardPanel.drawPlayer(player);
+    }
 
+    public void clearBoard() {
+        boardPanel.clearBoard();
     }
 }

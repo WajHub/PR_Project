@@ -31,4 +31,14 @@ public class BoardPanel extends JPanel  {
                 player.getPosition().getY()*PLAYER_SIZE,
                 PLAYER_SIZE, PLAYER_SIZE);
     }
+
+    public void clearBoard() {
+        Graphics g = this.getGraphics();
+        g.setColor(Color.black);
+        for(int i = 0; i < BOARD_HEIGHT/PLAYER_SIZE; i++){
+            for(int j = 0; j < BOARD_WIDTH/PLAYER_SIZE; j++){
+                g.fillRect(i*PLAYER_SIZE, j*PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE);
+            }
+        }
+    }
 }

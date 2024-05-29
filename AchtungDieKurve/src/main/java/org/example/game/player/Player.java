@@ -41,6 +41,7 @@ public class Player implements Serializable {
 
     private String name;
     private int id;
+    private int points = 0;
     private boolean isAlive = true;
     private boolean isReady = false;
     private boolean connected = false;
@@ -59,7 +60,7 @@ public class Player implements Serializable {
     }
 
 
-    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady, Position position, Direction direction) {
+    public Player(String name, int id, boolean isAlive, boolean connected, boolean isReady, Position position, Direction direction, int points) {
         this.name = name;
         this.id = id;
         this.isAlive = isAlive;
@@ -67,6 +68,7 @@ public class Player implements Serializable {
         this.isReady = isReady;
         this.position = position;
         this.direction = direction;
+        this.points = points;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ParseException, ClassNotFoundException {
@@ -140,6 +142,14 @@ public class Player implements Serializable {
 //                        gameFrame.displayGameOver();
                     }
                     break;
+                case "startRound":
+                    gameFrame.clearBoard();
+                    break;
+                case "endOfRound":
+                    this.setAlive(true);
+                    this.setReady(false);
+                    gameFrame.displayButtonReady();
+                    break;
                 default:
                     break;
             }
@@ -169,7 +179,8 @@ public class Player implements Serializable {
                 (Boolean) json.get("connected"),
                 (Boolean) json.get("isReady"),
                 Position.getPositionFromJSON((JSONObject) json.get("position")),
-                Direction.valueOf((String) json.get("direction")));
+                Direction.valueOf((String) json.get("direction")),
+                ((Long) json.get("points")).intValue());
     }
 
     // TODO Gracz musi wybrac niezajęty i niepusty nick
@@ -229,11 +240,5 @@ public class Player implements Serializable {
         }
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = direction;
     }
 
-    public void setPosition(Position position) {
-        this.position = position;
-    }
-}
