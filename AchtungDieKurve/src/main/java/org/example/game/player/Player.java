@@ -84,11 +84,9 @@ public class Player implements Serializable {
 
 
         player.choseNick();
-
         while(player.getName()==null){
             Thread.sleep(10);
         }
-
         player.sendPlayer("newPlayer");
 
         player.action(gameFrame);
@@ -141,6 +139,10 @@ public class Player implements Serializable {
                         // TODO: Display game over
 //                        gameFrame.displayGameOver();
                     }
+                    break;
+                case "reconnect":
+                    Player player = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromServer.get("content")));
+                    System.out.println(player);
                     break;
                 case "startRound":
                     gameFrame.clearBoard();
@@ -200,7 +202,9 @@ public class Player implements Serializable {
     private void close () {
         try {
             connected = false;
-            out.writeObject("exit");
+            this.messageToServerJson.put("type", "disconnect");
+            this.messageToServerJson.put("content", this.gson.toJson(this)); // Send player as json
+            this.out.writeObject(this.messageToServerJson.toString());
             in.close();
             out.close();
             socket.close();

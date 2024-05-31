@@ -43,7 +43,10 @@ public class ConnectionHandler implements Runnable {
                 String messageType = (String) jsonMessageFromClient.get("type");
 
                 switch (messageType) {
-                    case "exit":
+                    case "disconnect":
+                        Player playerDisconnected = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
+                        Server.disconnectPlayer(playerDisconnected);
+                        Server.clients.remove(this);
                         isRunning = false;
                         break;
                     case "newPlayer":
@@ -60,7 +63,6 @@ public class ConnectionHandler implements Runnable {
                             if (p.getId()==player2.getId()) p.setReady(true);
                         });
                         Server.sendPlayers("connectedPlayers");
-                        Server.startRound();
                         break;
                     case "getDirection":
                         Player player3 = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
@@ -92,6 +94,7 @@ public class ConnectionHandler implements Runnable {
         out.writeObject(messageToPlayersJson.toString());
         messageToPlayersJson.keySet().clear();
     }
+
 
     public void close() {
         System.out.println("Client disconnected: "+socket.getInetAddress());

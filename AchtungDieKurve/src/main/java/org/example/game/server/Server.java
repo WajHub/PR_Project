@@ -24,17 +24,18 @@ import java.util.Arrays;
 public class Server {
     public static final int PORT = 1234;
     public static int TIME_FOR_MOVE = 100;
+    public final int ATTEMPT_TO_RECONNECT = 2; // wait 10 seconds for reconnect
     private ServerSocket serverSocket;
     public static Game game;
     public static ArrayList<ConnectionHandler> clients;  // TODO: zamienic na threadpool
     private static JSONObject messageToPlayersJson = new JSONObject();
-    private static final transient Gson gson = new Gson();
+    private static final Gson gson = new Gson();
 
     public Server() {
         try {
             game = new Game(new ArrayList<>());
             serverSocket = new ServerSocket(PORT);
-            serverSocket.setSoTimeout(5000); // Set timeout to 10 seconds
+            serverSocket.setSoTimeout(3000); // Set timeout to 3 seconds
             clients = new ArrayList<>();
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,9 +57,16 @@ public class Server {
                     server.clients.add(connectionHandler);
                     playerThread.start();
                 } catch (SocketTimeoutException e) {
+                    while(!allPlayersConnected()){
+                        server.waitForReconnect();
+                    }
+                    startRound();
                 }
             }
             while (game.isStared()) {
+                while(!allPlayersConnected()){
+                    server.waitForReconnect();
+                }
                 sendPlayers("newPositions");
                 sendPlayers("getDirectionFromPlayer");
                 movePlayers();
@@ -70,6 +78,7 @@ public class Server {
             }
         }
     }
+
 
     private static void checkEndOfRound() throws IOException {
         if(game.getPlayers().stream().filter(Player::isAlive).count() <= 1){
@@ -97,7 +106,7 @@ public class Server {
         }
     }
 
-    public static synchronized void startRound() throws IOException, InterruptedException {
+    public static void startRound() throws IOException, InterruptedException {
         if(everyPlayerIsReady() && Server.game.getPlayersCount() > 1){
             Server.game.setStared(true);
             sendPlayers("startRound");
@@ -122,12 +131,30 @@ public class Server {
         }
     }
 
+    // Sending All players in Array
     public static void sendPlayers(String type) throws IOException {
         for(ConnectionHandler  client: clients){
             messageToPlayersJson.put("type", type);
             messageToPlayersJson.put("content", gson.toJson(Server.game.getPlayers()));
             client.out.writeObject(messageToPlayersJson.toString());
             messageToPlayersJson.keySet().clear();
+        }
+    }
+
+    // Sending One player to each clients
+    public static void sendPlayer(String type) throws IOException {
+        for(ConnectionHandler  client: clients){
+            game.getPlayers().forEach(player -> {
+                messageToPlayersJson.put("type", type);
+                messageToPlayersJson.put("content", gson.toJson(player));
+                try {
+                    client.out.writeObject(messageToPlayersJson.toString());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                messageToPlayersJson.keySet().clear();
+            });
+
         }
     }
 
@@ -156,4 +183,50 @@ public class Server {
     }
 
 
+    public static void disconnectPlayer(Player player) {
+        game.getPlayers().forEach(p -> {
+            if(p.getId()== player.getId()){
+                p.setConnected(false);
+            }
+        });
+    }
+
+
+    private void waitForReconnect() throws IOException {
+        int attempt = 0;
+        boolean connected = false;
+        ConnectionHandler connectionHandler;
+        while(attempt < this.ATTEMPT_TO_RECONNECT){
+            try {
+                Socket playerSocket = this.serverSocket.accept();
+                ObjectOutputStream out = new ObjectOutputStream(playerSocket.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(playerSocket.getInputStream());
+
+                connectionHandler = new ConnectionHandler(playerSocket, in, out);
+                Thread playerThread = new Thread(connectionHandler);
+                this.clients.add(connectionHandler);
+                playerThread.start();
+                attempt = this.ATTEMPT_TO_RECONNECT;
+                connected = true;
+            } catch (SocketTimeoutException e) {
+                System.out.println("Waiting for reconnect ("+(this.ATTEMPT_TO_RECONNECT-attempt)+" Seconds)");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            attempt++;
+        }
+        if(connected){
+            System.out.println("Player reconnected");
+            sendPlayer("reconnect");
+        }else{
+            System.out.println("Player not connected");
+            // Remove player which is not connected
+            game.getPlayers().removeIf(player -> !player.isConnected());
+            sendPlayers("connectedPlayers");
+        }
+    }
+
+    public static boolean allPlayersConnected(){
+        return game.getPlayers().stream().allMatch(Player::isConnected);
+    }
 }
