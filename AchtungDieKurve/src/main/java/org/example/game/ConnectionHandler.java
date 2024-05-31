@@ -53,8 +53,12 @@ public class ConnectionHandler implements Runnable {
                         JSONObject playerJsonFromClient = (JSONObject) parser.parse((String) jsonMessageFromClient.get("content"));
                         Player player = Player.getPlayerFromJSON(playerJsonFromClient);
                         player.setId(Server.game.getPlayers().size());
+                        // TODO - przeniesc to do funkcji addPlayer
                         messageToPlayersJson.put("type", "newId");
                         addNewPlayer(player);
+                        Server.sendPlayers("connectedPlayers");
+                        break;
+                    case "newPlayerReconnection":
                         Server.sendPlayers("connectedPlayers");
                         break;
                     case "ready":
@@ -73,6 +77,22 @@ public class ConnectionHandler implements Runnable {
                     case "pong":
                         System.out.println("Pong from: " + messageFromClient);
                         break;
+                    case "join":
+                        if(Server.everyPlayersConnected()){
+                            messageToPlayersJson.put("type", "non-reconnection");
+                            out.writeObject(messageToPlayersJson.toString());
+                            messageToPlayersJson.keySet().clear();
+                        }
+                        else{
+                            System.out.println("TAAAK");
+                        }
+//                        else{
+//                            messageToPlayersJson.put("type", "reconnectionPlayer");
+//                            // send player who is disconnected
+//                            Player disconnectedPlayer = Server.game.getDisconnectedPlayer();
+//                            messageToPlayersJson.put("content", gson.toJson(disconnectedPlayer));
+//                        }
+                        break;
                     default:
                         // Handle unexpected messageType
                         break;
@@ -86,7 +106,6 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-
     private void addNewPlayer(Player player ) throws IOException {
         Server.game.addPlayer(player);
         String playerInJsonToClient = gson.toJson(player);
@@ -95,9 +114,9 @@ public class ConnectionHandler implements Runnable {
         messageToPlayersJson.keySet().clear();
     }
 
-
     public void close() {
-        System.out.println("Client disconnected: "+socket.getInetAddress());
+        System.out.println("Client disconnected: "+socket.getInetAddress()+":"+socket.getPort()+
+                " with id: "+Thread.currentThread()+", "+socket.getInetAddress());
         try {
             in.close();
             out.close();

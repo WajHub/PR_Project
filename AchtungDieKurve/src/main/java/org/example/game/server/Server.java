@@ -24,7 +24,7 @@ import java.util.Arrays;
 public class Server {
     public static final int PORT = 1234;
     public static int TIME_FOR_MOVE = 100;
-    public final int ATTEMPT_TO_RECONNECT = 2; // wait 10 seconds for reconnect
+    public final int ATTEMPT_TO_RECONNECT = 10; // wait 10 seconds for reconnect
     private ServerSocket serverSocket;
     public static Game game;
     public static ArrayList<ConnectionHandler> clients;  // TODO: zamienic na threadpool
@@ -35,7 +35,7 @@ public class Server {
         try {
             game = new Game(new ArrayList<>());
             serverSocket = new ServerSocket(PORT);
-            serverSocket.setSoTimeout(3000); // Set timeout to 3 seconds
+            serverSocket.setSoTimeout(1000); // Set timeout to 3 seconds
             clients = new ArrayList<>();
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,16 +57,15 @@ public class Server {
                     server.clients.add(connectionHandler);
                     playerThread.start();
                 } catch (SocketTimeoutException e) {
-                    while(!allPlayersConnected()){
-                        server.waitForReconnect();
-                    }
+                    // Check disconnected players
+                    while(!everyPlayersConnected()) server.waitForReconnect();
                     startRound();
                 }
             }
             while (game.isStared()) {
-                while(!allPlayersConnected()){
-                    server.waitForReconnect();
-                }
+                // Check disconnected players
+                while(!everyPlayersConnected()) server.waitForReconnect();
+
                 sendPlayers("newPositions");
                 sendPlayers("getDirectionFromPlayer");
                 movePlayers();
@@ -79,6 +78,16 @@ public class Server {
         }
     }
 
+    public static void startRound() throws IOException, InterruptedException {
+        if(everyPlayerIsReady() && Server.game.getPlayersCount() > 1){
+            Server.game.setStared(true);
+            sendPlayers("startRound");
+            Server.game.getPlayers().forEach(p -> p.setPosition(Position.randomPosition()));
+            Server.game.savePositions();
+            sendPlayers("newPositions");
+            Thread.sleep(2000);
+        }
+    }
 
     private static void checkEndOfRound() throws IOException {
         if(game.getPlayers().stream().filter(Player::isAlive).count() <= 1){
@@ -104,21 +113,6 @@ public class Server {
                 }
             }
         }
-    }
-
-    public static void startRound() throws IOException, InterruptedException {
-        if(everyPlayerIsReady() && Server.game.getPlayersCount() > 1){
-            Server.game.setStared(true);
-            sendPlayers("startRound");
-            Server.game.getPlayers().forEach(p -> p.setPosition(Position.randomPosition()));
-            Server.game.savePositions();
-            sendPlayers("newPositions");
-            Thread.sleep(2000);
-        }
-    }
-
-    private static boolean everyPlayerIsReady() {
-        return Server.game.getPlayers().stream().allMatch(Player::isReady);
     }
 
     private static void sendPing() throws IOException, InterruptedException {
@@ -182,7 +176,6 @@ public class Server {
         );
     }
 
-
     public static void disconnectPlayer(Player player) {
         game.getPlayers().forEach(p -> {
             if(p.getId()== player.getId()){
@@ -190,7 +183,6 @@ public class Server {
             }
         });
     }
-
 
     private void waitForReconnect() throws IOException {
         int attempt = 0;
@@ -208,6 +200,15 @@ public class Server {
                 playerThread.start();
                 attempt = this.ATTEMPT_TO_RECONNECT;
                 connected = true;
+                // Message to connectionHandler type - reconnection, content - player
+                messageToPlayersJson.put("type", "reconnectionPlayer");
+                // send player who is disconnected
+                Player disconnectedPlayer = Server.game.getDisconnectedPlayer();
+                game.setReconnection();
+                messageToPlayersJson.put("content", gson.toJson(disconnectedPlayer));
+                connectionHandler.out.writeObject(messageToPlayersJson.toString());
+                messageToPlayersJson.keySet().clear();
+                sendPlayers("connectedPlayers");
             } catch (SocketTimeoutException e) {
                 System.out.println("Waiting for reconnect ("+(this.ATTEMPT_TO_RECONNECT-attempt)+" Seconds)");
             } catch (IOException e) {
@@ -215,18 +216,20 @@ public class Server {
             }
             attempt++;
         }
-        if(connected){
-            System.out.println("Player reconnected");
-            sendPlayer("reconnect");
-        }else{
-            System.out.println("Player not connected");
+        if(!connected){
             // Remove player which is not connected
             game.getPlayers().removeIf(player -> !player.isConnected());
             sendPlayers("connectedPlayers");
+            System.out.println("Disconnected player removed");
         }
     }
 
-    public static boolean allPlayersConnected(){
+    public static boolean everyPlayersConnected(){
         return game.getPlayers().stream().allMatch(Player::isConnected);
     }
+
+    private static boolean everyPlayerIsReady() {
+        return Server.game.getPlayers().stream().allMatch(Player::isReady);
+    }
+
 }

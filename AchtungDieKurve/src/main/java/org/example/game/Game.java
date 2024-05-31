@@ -77,6 +77,24 @@ public class Game {
         return 0;
     }
 
+    public Player getDisconnectedPlayer(){
+        for(Player player: players){
+            if(!player.isConnected()){
+                return player;
+            }
+        }
+        return null;
+    }
+
+    public void setReconnection(){
+        for(Player player: players){
+            if(!player.isConnected()){
+                player.setConnected(true);
+                break;
+            }
+        }
+    }
+
     public void clearBoard() {
         for(int i = 0; i < board.length; i++){
             for(int j = 0; j < board[0].length; j++){

@@ -82,15 +82,38 @@ public class Player implements Serializable {
             }
         });
 
-
-        player.choseNick();
-        while(player.getName()==null){
-            Thread.sleep(10);
-        }
-        player.sendPlayer("newPlayer");
+        player.joinGame(gameFrame);
 
         player.action(gameFrame);
 
+
+    }
+
+    private void joinGame(GameFrame gameFrame) throws IOException, InterruptedException, ClassNotFoundException, ParseException {
+        sendPlayer("join");
+        String messageFromServer = (String) this.in.readObject();
+        JSONObject jsonMessageFromServer = (JSONObject) this.parser.parse(messageFromServer);
+        String messageType = (String) jsonMessageFromServer.get("type");
+        if(messageType.equals("reconnectionPlayer")){
+            String playerJson = (String) jsonMessageFromServer.get("content");
+            Player player = Player.getPlayerFromJSON((JSONObject) this.parser.parse(playerJson));
+            this.setId(player.getId());
+            this.setName(player.getName());
+            this.setAlive(player.isAlive());
+            this.setConnected(player.isConnected());
+            this.setReady(player.isReady());
+            this.setPosition(player.getPosition());
+            this.setDirection(player.getDirection());
+            this.setPoints(player.getPoints());
+            gameFrame.displayButtonReady();
+        }
+        else if(messageType.equals("non-reconnection")){
+            this.choseNick();
+            while(this.getName()==null){
+                Thread.sleep(10);
+            }
+            this.sendPlayer("newPlayer");
+        }
 
     }
 
@@ -139,10 +162,6 @@ public class Player implements Serializable {
                         // TODO: Display game over
 //                        gameFrame.displayGameOver();
                     }
-                    break;
-                case "reconnect":
-                    Player player = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromServer.get("content")));
-                    System.out.println(player);
                     break;
                 case "startRound":
                     gameFrame.clearBoard();
@@ -195,9 +214,9 @@ public class Player implements Serializable {
         return "Player{" +
                 "name='" + name + '\'' +
                 ", id=" + id +
+                ", connected="+connected+
                 '}';
     }
-
 
     private void close () {
         try {
@@ -212,7 +231,6 @@ public class Player implements Serializable {
             e.printStackTrace();
         }
     }
-
 
     public void setController(String selectedItem) {
         switch (selectedItem){
