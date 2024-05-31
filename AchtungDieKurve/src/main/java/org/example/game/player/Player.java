@@ -12,6 +12,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -90,7 +91,7 @@ public class Player implements Serializable {
 
     }
 
-    private void joinGame(GameFrame gameFrame) throws IOException, InterruptedException, ClassNotFoundException, ParseException {
+    public void joinGame(GameFrame gameFrame) throws IOException, InterruptedException, ClassNotFoundException, ParseException {
         sendPlayer("join");
         String messageFromServer = (String) this.in.readObject();
         JSONObject jsonMessageFromServer = (JSONObject) this.parser.parse(messageFromServer);
@@ -107,10 +108,11 @@ public class Player implements Serializable {
             this.setDirection(player.getDirection());
             this.setPoints(player.getPoints());
             if(!this.isReady) gameFrame.displayButtonReady();
-//            else gameFrame
             String boardJson = (String) jsonMessageFromServer.get("board");
             JSONArray jsonArrayBoard = (JSONArray) this.parser.parse(boardJson);
-            gameFrame.printBoard(jsonArrayBoard);
+            SwingUtilities.invokeLater(() -> {
+                gameFrame.printBoard(jsonArrayBoard);
+            });
         }
         else if(messageType.equals("non-reconnection")){
             this.choseNick();
@@ -119,10 +121,9 @@ public class Player implements Serializable {
             }
             this.sendPlayer("newPlayer");
         }
-
     }
 
-    public void action(GameFrame gameFrame) throws IOException, ClassNotFoundException, ParseException, InterruptedException {
+    public void action(GameFrame gameFrame) throws IOException, ClassNotFoundException, ParseException {
         while(this.connected){
             // Read message
             String messageFromServer = (String) this.in.readObject();

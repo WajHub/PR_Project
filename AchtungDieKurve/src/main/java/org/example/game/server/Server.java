@@ -63,6 +63,9 @@ public class Server {
                 }
             }
             while (game.isStared()) {
+                printBoard();
+                System.out.println("\n");
+                System.out.println(Arrays.deepToString(game.getBoard()));
                 // Check disconnected players
                 while(!everyPlayersConnected()) server.waitForReconnect();
 
@@ -75,6 +78,15 @@ public class Server {
                 sendPlayers("connectedPlayers");
                 Thread.sleep(TIME_FOR_MOVE);
             }
+        }
+    }
+
+    private static void printBoard() {
+        for (int[] row : game.getBoard()) {
+            for (int value : row) {
+                System.out.print(value + "   ");
+            }
+            System.out.println();
         }
     }
 
@@ -191,9 +203,12 @@ public class Server {
                 connectionHandler.out.writeObject(messageToPlayersJson.toString());
                 messageToPlayersJson.keySet().clear();
                 sendPlayers("connectedPlayers");
+                Thread.sleep(2000);
             } catch (SocketTimeoutException e) {
                 System.out.println("Waiting for reconnect ("+(this.ATTEMPT_TO_RECONNECT-attempt)+" Seconds)");
             } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
             attempt++;
