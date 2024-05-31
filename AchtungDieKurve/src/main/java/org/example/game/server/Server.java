@@ -23,7 +23,7 @@ import java.util.Arrays;
 @Setter
 public class Server {
     public static final int PORT = 1234;
-    public static int TIME_FOR_MOVE = 1000;
+    public static int TIME_FOR_MOVE = 100;
     public final int ATTEMPT_TO_RECONNECT = 10; // wait 10 seconds for reconnect
     private ServerSocket serverSocket;
     public static Game game;
@@ -63,9 +63,6 @@ public class Server {
                 }
             }
             while (game.isStared()) {
-                printBoard();
-                System.out.println("\n");
-                System.out.println(Arrays.deepToString(game.getBoard()));
                 // Check disconnected players
                 while(!everyPlayersConnected()) server.waitForReconnect();
 
@@ -78,15 +75,6 @@ public class Server {
                 sendPlayers("connectedPlayers");
                 Thread.sleep(TIME_FOR_MOVE);
             }
-        }
-    }
-
-    private static void printBoard() {
-        for (int[] row : game.getBoard()) {
-            for (int value : row) {
-                System.out.print(value + "   ");
-            }
-            System.out.println();
         }
     }
 

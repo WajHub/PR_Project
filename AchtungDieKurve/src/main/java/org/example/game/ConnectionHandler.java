@@ -38,6 +38,14 @@ public class ConnectionHandler implements Runnable {
                 String messageType = (String) jsonMessageFromClient.get("type");
 
                 switch (messageType) {
+                    case "join":
+                        // Join new player
+                        if(Server.everyPlayersConnected()){
+                            messageToPlayersJson.put("type", "no-reconnection");
+                            out.writeObject(messageToPlayersJson.toString());
+                            messageToPlayersJson.keySet().clear();
+                        }
+                        break;
                     case "disconnect":
                         Player playerDisconnected = Player.getPlayerFromJSON((JSONObject) parser.parse((String) jsonMessageFromClient.get("content")));
                         Server.disconnectPlayer(playerDisconnected);
@@ -71,14 +79,6 @@ public class ConnectionHandler implements Runnable {
                         break;
                     case "pong":
                         System.out.println("Pong from: " + messageFromClient);
-                        break;
-                    case "join":
-                        // Join new player
-                        if(Server.everyPlayersConnected()){
-                            messageToPlayersJson.put("type", "non-reconnection");
-                            out.writeObject(messageToPlayersJson.toString());
-                            messageToPlayersJson.keySet().clear();
-                        }
                         break;
                 }
             }

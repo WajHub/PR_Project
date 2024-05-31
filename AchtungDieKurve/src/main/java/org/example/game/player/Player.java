@@ -114,7 +114,7 @@ public class Player implements Serializable {
                 gameFrame.printBoard(jsonArrayBoard);
             });
         }
-        else if(messageType.equals("non-reconnection")){
+        else if(messageType.equals("no-reconnection")){
             this.choseNick();
             while(this.getName()==null){
                 Thread.sleep(10);
