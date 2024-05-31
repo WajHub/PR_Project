@@ -1,5 +1,6 @@
 package org.example.gui;
 import org.example.game.player.Player;
+import org.json.simple.JSONArray;
 
 import javax.swing.*;
 
@@ -33,5 +34,9 @@ public class GameFrame extends JFrame {
 
     public void clearBoard() {
         gamePanel.clearBoard();
+    }
+
+    public void printBoard(JSONArray jsonArrayBoard) {
+        gamePanel.printBoard(jsonArrayBoard);
     }
 }

@@ -1,6 +1,7 @@
 package org.example.gui;
 
 import org.example.game.player.Player;
+import org.json.simple.JSONArray;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -46,5 +47,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void clearBoard() {
         boardPanel.clearBoard();
+    }
+
+    public void printBoard(JSONArray jsonArrayBoard) {
+        boardPanel.printBoard(jsonArrayBoard);
     }
 }

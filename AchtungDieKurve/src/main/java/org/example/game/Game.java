@@ -5,6 +5,9 @@ import org.example.game.player.Player;
 import org.example.gui.BoardPanel;
 
 import org.example.game.player.Direction;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.util.List;
 
 @Getter
@@ -102,4 +105,5 @@ public class Game {
             }
         }
     }
+
 }

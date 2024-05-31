@@ -33,7 +33,7 @@ public class MenuPanel extends JPanel implements ActionListener {
         this.add(scrollPane);
         this.add(playerColor);
 
-        playerColor.setVisible(false);
+        playerColor.setVisible(true);
 
         buttonReady.setVisible(false);
         buttonReady.addActionListener(e -> {

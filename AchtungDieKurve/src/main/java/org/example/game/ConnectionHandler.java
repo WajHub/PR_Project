@@ -1,19 +1,14 @@
 package org.example.game;
 
 import com.google.gson.Gson;
-import org.example.game.player.Direction;
 import org.example.game.player.Player;
-import org.example.game.player.Position;
 import org.example.game.server.Server;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -78,23 +73,12 @@ public class ConnectionHandler implements Runnable {
                         System.out.println("Pong from: " + messageFromClient);
                         break;
                     case "join":
+                        // Join new player
                         if(Server.everyPlayersConnected()){
                             messageToPlayersJson.put("type", "non-reconnection");
                             out.writeObject(messageToPlayersJson.toString());
                             messageToPlayersJson.keySet().clear();
                         }
-                        else{
-                            System.out.println("TAAAK");
-                        }
-//                        else{
-//                            messageToPlayersJson.put("type", "reconnectionPlayer");
-//                            // send player who is disconnected
-//                            Player disconnectedPlayer = Server.game.getDisconnectedPlayer();
-//                            messageToPlayersJson.put("content", gson.toJson(disconnectedPlayer));
-//                        }
-                        break;
-                    default:
-                        // Handle unexpected messageType
                         break;
                 }
             }

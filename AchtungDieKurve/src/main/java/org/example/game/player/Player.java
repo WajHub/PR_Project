@@ -33,10 +33,10 @@ public class Player implements Serializable {
     private transient Gson gson = new Gson();
     private transient JSONObject messageToServerJson = new JSONObject();
     private transient Color color;
-    private transient int up;
-    private transient int down;
-    private transient int left;
-    private transient int right;
+    private transient int up = KeyEvent.VK_UP;
+    private transient int down = KeyEvent.VK_DOWN;
+    private transient int left = KeyEvent.VK_LEFT;
+    private transient int right = KeyEvent.VK_RIGHT;
 
 
     private String name;
@@ -48,6 +48,7 @@ public class Player implements Serializable {
     private Position position = new Position();
     private Direction direction = Direction.DOWN;
     private Direction prevDirection = Direction.DOWN;
+
 
     // TODO gracz powininen przechowywac jeszcze chyba ilosc punktow
 
@@ -105,7 +106,11 @@ public class Player implements Serializable {
             this.setPosition(player.getPosition());
             this.setDirection(player.getDirection());
             this.setPoints(player.getPoints());
-            gameFrame.displayButtonReady();
+            if(!this.isReady) gameFrame.displayButtonReady();
+//            else gameFrame
+            String boardJson = (String) jsonMessageFromServer.get("board");
+            JSONArray jsonArrayBoard = (JSONArray) this.parser.parse(boardJson);
+            gameFrame.printBoard(jsonArrayBoard);
         }
         else if(messageType.equals("non-reconnection")){
             this.choseNick();

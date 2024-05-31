@@ -23,7 +23,7 @@ import java.util.Arrays;
 @Setter
 public class Server {
     public static final int PORT = 1234;
-    public static int TIME_FOR_MOVE = 100;
+    public static int TIME_FOR_MOVE = 1000;
     public final int ATTEMPT_TO_RECONNECT = 10; // wait 10 seconds for reconnect
     private ServerSocket serverSocket;
     public static Game game;
@@ -35,7 +35,7 @@ public class Server {
         try {
             game = new Game(new ArrayList<>());
             serverSocket = new ServerSocket(PORT);
-            serverSocket.setSoTimeout(1000); // Set timeout to 3 seconds
+            serverSocket.setSoTimeout(1000); // Set timeout to 1 seconds
             clients = new ArrayList<>();
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,30 +125,12 @@ public class Server {
         }
     }
 
-    // Sending All players in Array
     public static void sendPlayers(String type) throws IOException {
         for(ConnectionHandler  client: clients){
             messageToPlayersJson.put("type", type);
             messageToPlayersJson.put("content", gson.toJson(Server.game.getPlayers()));
             client.out.writeObject(messageToPlayersJson.toString());
             messageToPlayersJson.keySet().clear();
-        }
-    }
-
-    // Sending One player to each clients
-    public static void sendPlayer(String type) throws IOException {
-        for(ConnectionHandler  client: clients){
-            game.getPlayers().forEach(player -> {
-                messageToPlayersJson.put("type", type);
-                messageToPlayersJson.put("content", gson.toJson(player));
-                try {
-                    client.out.writeObject(messageToPlayersJson.toString());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                messageToPlayersJson.keySet().clear();
-            });
-
         }
     }
 
@@ -200,12 +182,12 @@ public class Server {
                 playerThread.start();
                 attempt = this.ATTEMPT_TO_RECONNECT;
                 connected = true;
-                // Message to connectionHandler type - reconnection, content - player
+
                 messageToPlayersJson.put("type", "reconnectionPlayer");
-                // send player who is disconnected
                 Player disconnectedPlayer = Server.game.getDisconnectedPlayer();
                 game.setReconnection();
                 messageToPlayersJson.put("content", gson.toJson(disconnectedPlayer));
+                messageToPlayersJson.put("board", gson.toJson(game.getBoard()));
                 connectionHandler.out.writeObject(messageToPlayersJson.toString());
                 messageToPlayersJson.keySet().clear();
                 sendPlayers("connectedPlayers");
